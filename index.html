@@ -1,407 +1,475 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎙️ Global Accent Translator</title>
-  <style>
-    :root {
-      --bg: #0f1724;
-      --card: #0b1220;
-      --glass: rgba(255, 255, 255, 0.03);
-      --accent: #38bdf8;
-      --text: #e6eef6;
-      --muted: #9aa7b2;
-      --border: rgba(255, 255, 255, 0.03);
-    }
-
-    body {
-      font-family: system-ui, sans-serif;
-      background: #071026;
-      color: var(--text);
-      min-height: 100vh;
-      padding: 20px;
-      display: flex;
-      align-items: start;
-      justify-content: center;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 1000px;
-      background: rgba(255, 255, 255, 0.02);
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-      border: 1px solid rgba(255,255,255,0.03);
-    }
-
-    h1 { font-size: 1.5rem; margin: 0 0 8px; background: linear-gradient(to right, #38bdf8, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .lead { font-size: 0.9rem; color: var(--muted); margin-bottom: 16px; }
-
-    .grid {
-      display: grid;
-      gap: 16px;
-    }
-
-    @media (min-width: 768px) {
-      .grid { grid-template-columns: 1fr 300px; }
-    }
-
-    .card {
-      background: var(--card);
-      border-radius: 10px;
-      padding: 14px;
-      border: 1px solid var(--border);
-    }
-
-    button {
-      padding: 10px 14px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    button.primary {
-      background: linear-gradient(180deg, #38bdf8, #0ea5c6);
-      color: #012;
-      font-weight: 600;
-      flex: 1;
-    }
-
-    button.ghost {
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.04);
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    button.ghost:hover {
-      background: rgba(255,255,255,0.03);
-      color: white;
-    }
-
-    textarea, select {
-      width: 100%;
-      padding: 10px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.03);
-      border-radius: 8px;
-      color: var(--text);
-      resize: vertical;
-    }
-
-    textarea {
-      min-height: 100px;
-      font-family: inherit;
-    }
-
-    label.small {
-      display: block;
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-
-    .voices {
-      max-height: 140px;
-      overflow-y: auto;
-      border: 1px dashed rgba(255,255,255,0.02);
-      background: rgba(255,255,255,0.01);
-      border-radius: 8px;
-      font-size: 13px;
-      padding: 6px;
-    }
-
-    .voice-item {
-      padding: 6px;
-      cursor: pointer;
-      border-radius: 6px;
-    }
-
-    .voice-item:hover {
-      background: rgba(255,255,255,0.02);
-    }
-
-    .voice-item.selected {
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-    }
-
-    .log {
-      min-height: 120px;
-      background: rgba(0,0,0,0.2);
-      border-radius: 8px;
-      padding: 8px;
-      font-size: 13px;
-      color: var(--muted);
-      overflow-y: auto;
-    }
-
-    .pulse {
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.6; }
-      100% { opacity: 1; }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Global Accent Translator</title>
+<style>
+  :root{
+    --bg:#0f1724;--card:#0b1220;--muted:#9aa7b2;--accent:#38bdf8;--glass: rgba(255,255,255,0.03);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  body{
+    margin:0;min-height:100vh;background:linear-gradient(180deg,#071026 0%,#071623 60%), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2306b6d4" stop-opacity="0.07" offset="0"/><stop stop-color="%230c4a6e" stop-opacity="0.02" offset="1"/></linearGradient></defs><rect width="100%" height="100%" fill="url(%23g)"/></svg>');
+    color:#e6eef6;padding:20px;box-sizing:border-box;display:flex;align-items:flex-start;justify-content:center;
+  }
+  .container{
+    width:980px;max-width:100%;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03);
+  }
+  header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  h1{font-size:20px;margin:0;font-weight:600}
+  p.lead{margin:0;color:var(--muted);font-size:13px}
+  .grid{
+    display:grid;grid-template-columns:1fr;gap:14px
+  }
+  @media (min-width:768px){
+    .grid{grid-template-columns:1fr 320px;gap:16px}
+  }
+  .card{
+    background:var(--card);border-radius:10px;padding:12px;border:1px solid rgba(255,255,255,0.02)
+  }
+  .controls{
+    display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px
+  }
+  button.btn{
+    background:linear-gradient(180deg,var(--accent),#0ea5c6);border:0;padding:10px 14px;border-radius:8px;color:#012;cursor:pointer;font-weight:600;font-size:14px;flex:1;min-width:120px
+  }
+  button.ghost{
+    background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);padding:8px 10px;border-radius:8px;font-size:13px
+  }
+  .select,.input{
+    background:var(--glass);border:1px solid rgba(255,255,255,0.03);padding:10px;border-radius:8px;color:inherit;width:100%;font-size:14px
+  }
+  label.small{
+    display:block;color:var(--muted);font-size:12px;margin-bottom:6px
+  }
+  textarea{
+    width:100%;min-height:100px;background:#02101a;border-radius:8px;border:1px solid rgba(255,255,255,0.02);padding:10px;color:#dff1ff;font-family:inherit;resize:vertical;font-size:14px;line-height:1.5
+  }
+  .meta{
+    font-size:13px;color:var(--muted);margin-top:8px
+  }
+  .voices{
+    max-height:140px;overflow:auto;padding:6px;border-radius:8px;border:1px dashed rgba(255,255,255,0.02);background:rgba(255,255,255,0.01);font-size:13px
+  }
+  .row{display:flex;gap:8px;align-items:center}
+  .smallbtn{
+    padding:6px 10px;border-radius:8px;border:0;background:rgba(255,255,255,0.03);color:var(--muted);cursor:pointer;font-size:13px
+  }
+  footer{
+    margin-top:16px;color:var(--muted);font-size:12px;text-align:center
+  }
+  .note{
+    font-size:12px;color:#98a9b5;margin-top:6px;line-height:1.4
+  }
+  .kbd{
+    background:#071826;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,0.02);font-family:monospace;font-size:12px
+  }
+  @media (max-width:768px){
+    .container{padding:12px}
+    h1{font-size:18px}
+    .lead{font-size:12px}
+    button.btn{padding:9px 12px;font-size:13px}
+    textarea{font-size:13px;min-height:90px}
+    .card{padding:10px}
+    .voices{max-height:120px;font-size:12px}
+    .meta{font-size:12px}
+  }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>🎙️ Global Accent Translator</h1>
-    <p class="lead">Click <strong>Allow Microphone</strong> to begin. Works on Chrome/Edge via localhost.</p>
+  <div class="container" role="application" aria-label="Global Accent Translator">
+    <header>
+      <div>
+        <h1>🌍 Global Accent Translator</h1>
+        <p class="lead">Speak → convert accent → play. Works best on Chrome/Edge → ( Created By Samar Jeet Jamwal) !</p>
+      </div>
+    </header>
 
     <div class="grid">
-      <!-- LEFT -->
+      <!-- LEFT: Controls & Transcript -->
       <div class="card">
-        <button id="initBtn" class="primary">🎤 1. Allow Microphone</button>
-        <button id="recBtn" class="primary" disabled>2. 🎙️ Start Recording</button>
-        <button id="stopBtn" class="ghost" disabled>⏹️ Stop</button>
-        <button id="clearBtn" class="ghost">🗑️ Clear</button>
+        <div class="controls">
+          <button id="recBtn" class="btn">🎤 Start Recording</button>
+          <button id="stopBtn" class="ghost" disabled>⏹️ Stop</button>
+        </div>
 
-        <div style="margin:12px 0">
+        <div style="margin-bottom:10px">
           <label class="small">Input Language</label>
-          <select id="inputLang">
-            <option value="en-US" selected>English (US)</option>
-            <option value="en-GB">English (UK)</option>
+          <select id="inputLang" class="select">
+            <option value="en" selected>English</option>
+            <option value="hi">Hindi</option>
+            <option value="es">Spanish</option>
           </select>
         </div>
 
-        <div style="margin:12px 0">
+        <div style="margin-bottom:10px">
+          <label class="small">Mode</label>
+          <select id="mode" class="select">
+            <option value="local" selected>Local (No API)</option>
+            <option value="remote">Remote (LLM via Proxy)</option>
+          </select>
+        </div>
+
+        <div id="proxySettings" style="display:none;margin-bottom:10px">
+          <label class="small">Proxy URL (your server)</label>
+          <input id="proxyUrl" class="input" placeholder="https://your-proxy.example.com/translate-accent    " />
+          <div class="note">Your server calls Gemini/LLM securely. Expects {language, text, target_accent}, returns {accent_text, phonetic, speech_tags}.</div>
+        </div>
+
+        <div style="margin-bottom:10px">
           <label class="small">Target Accent</label>
-          <select id="accentSelect">
+          <select id="accentSelect" class="select">
             <option value="british-rp">British (RP)</option>
             <option value="australian">Australian</option>
             <option value="american-general" selected>American (General)</option>
+            <option value="indian-english">Indian English</option>
+            <option value="nigerian-english">Nigerian English</option>
+            <option value="scottish">Scottish</option>
+            <option value="southern-us">Southern US</option>
+            <option value="irish">Irish</option>
           </select>
         </div>
 
-        <label class="small">Transcript</label>
-        <textarea id="transcript" placeholder="Speech will appear here..." readonly></textarea>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.02);margin:12px 0">
 
-        <label class="small">Converted Text</label>
-        <textarea id="accentText" placeholder="Converted text will appear here..." readonly></textarea>
+        <!-- Transcript -->
+<label class="small">Transcript (auto)</label>
+<div style="display:flex; gap:6px; align-items:center;">
+  <textarea id="transcript" placeholder="Your speech will appear here..." readonly></textarea>
+  <button id="clearTranscript" class="smallbtn" title="Clear transcript">🗑</button>
+</div>
 
-        <div style="font-size:13px;color:var(--muted);margin:8px 0" id="status">👉 Click Step 1</div>
+<!-- Accent Text -->
+<label class="small" style="margin-top:10px">Accent-Converted Text</label>
+<div style="display:flex; gap:6px; align-items:center;">
+  <textarea id="accentText" placeholder="Result will appear here..." readonly></textarea>
+  <button id="clearAccent" class="smallbtn" title="Clear accent text">🗑</button>
+</div>
 
-        <div style="display:flex;gap:10px">
-          <button id="playOriginal" class="ghost">▶️ Play Original</button>
-          <button id="playAccent" class="ghost">▶️ Play Accent</button>
+
+        <div class="meta" id="metaInfo">Ready to record</div>
+
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <button id="playOriginal" class="ghost">▶ Play the Selected Accent</button>
+          <button id="playAccent" class="ghost">▶ Play Accent</button>
         </div>
       </div>
 
-      <!-- RIGHT -->
+      <!-- RIGHT: Voices, Phonetic, Actions -->
       <div>
-        <div class="card">
-          <label class="small">🗣️ Select Voice</label>
-          <div id="voices" class="voices">Click Step 1 to load voices...</div>
+        <div class="card" style="margin-bottom:10px">
+          <label class="small">Speech Voices (click to select)</label>
+          <div class="voices" id="voicesList">Loading voices…</div>
+          <div style="margin-top:6px"><button id="refreshVoices" class="ghost">🔄 Refresh Voices</button></div>
+          <div class="note">Voices depend on your OS. Chrome desktop has more options.</div>
+        </div>
+
+        <div class="card" style="margin-bottom:10px">
+          <label class="small">Phonetic & Speech Hints</label>
+          <textarea id="phonetic" placeholder="Phonetic guide will appear here..." readonly></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button id="copyAccent" class="ghost">📋 Copy Text</button>
+            <button id="downloadTxt" class="ghost">💾 Download .txt</button>
+          </div>
         </div>
 
         <div class="card">
           <label class="small">Activity Log</label>
-          <div id="log" class="log"></div>
+          <div id="log" style="min-height:120px;padding:8px;color:var(--muted);font-size:13px;background:#031218;border-radius:8px;overflow:auto"></div>
         </div>
       </div>
     </div>
+
+    <footer>
+  <div class="note" style="text-align: center; margin-top: 16px; font-size: 12px; color: #9aa7b2;">
+    &copy; 2025 All rights reserved. Created by Samar Jeet Jamwal.
+  </div>
+</footer>
   </div>
   <script src="config.js"></script>
 <script src="accent.js"></script>
 
-
   <script>
-    const $ = id => document.getElementById(id);
-    const initBtn = $('initBtn');
-    const recBtn = $('recBtn');
-    const stopBtn = $('stopBtn');
-    const clearBtn = $('clearBtn');
-    const playOriginal = $('playOriginal');
-    const playAccent = $('playAccent');
-    const transcript = $('transcript');
-    const accentText = $('accentText');
-    const status = $('status');
-    const inputLang = $('inputLang');
-    const accentSelect = $('accentSelect');
-    const voices = $('voices');
-    const logEl = $('log');
-
-    let recognition = null;
-    let speechSynthesis = window.speechSynthesis;
-    let voicesList = [];
-    let selectedVoiceIndex = null;
-
-    function log(msg, type = '') {
-      const entry = document.createElement('div');
-      entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-      if (type === 'err') entry.style.color = '#fca5a5';
-      if (type === 'success') entry.style.color = '#6ee7b7';
-      logEl.prepend(entry);
+    /* Global Accent Translator — Fully Self-Contained */
+    const logEl = document.getElementById('log');
+    function log(msg, type = 'info') {
+      const t = new Date().toLocaleTimeString();
+      const el = document.createElement('div');
+      el.textContent = `[${t}] ${msg}`;
+      if (type === 'err') el.style.color = '#ffb4b4';
+      else if (type === 'success') el.style.color = '#b6f0d6';
+      logEl.prepend(el);
     }
 
-    // ✅ STEP 1: Request Microphone & Unlock Speech
-    initBtn.addEventListener('click', async () => {
-      status.textContent = '🔒 Requesting microphone...';
-      log('Initializing audio systems...');
+    const recBtn = document.getElementById('recBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const transcriptEl = document.getElementById('transcript');
+    const accentTextEl = document.getElementById('accentText');
+    const phoneticEl = document.getElementById('phonetic');
+    const metaInfo = document.getElementById('metaInfo');
+    const modeSel = document.getElementById('mode');
+    const proxySettings = document.getElementById('proxySettings');
+    const proxyUrlInput = document.getElementById('proxyUrl');
+    const accentSelect = document.getElementById('accentSelect');
+    const voicesList = document.getElementById('voicesList');
+    const refreshVoicesBtn = document.getElementById('refreshVoices');
+    const copyAccentBtn = document.getElementById('copyAccent');
+    const downloadTxtBtn = document.getElementById('downloadTxt');
+    const playOriginalBtn = document.getElementById('playOriginal');
+    const playAccentBtn = document.getElementById('playAccent');
+    const inputLang = document.getElementById('inputLang');
 
-      try {
-        // 🔥 Critical: getUserMedia must be in user gesture
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        log('✅ Microphone access granted', 'success');
+    let recognition, recognizing = false;
+    let maxRecordingTimeout;
 
-        // 🔊 Unlock speechSynthesis by speaking silently
-        const utter = new SpeechSynthesisUtterance('');
-        utter.volume = 0;
-        speechSynthesis.speak(utter);
-        setTimeout(loadVoices, 300);
-
-        // ✅ Now initialize SpeechRecognition
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) throw new Error('SpeechRecognition not supported');
-
-        recognition = new SR();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = inputLang.value;
-
-        recognition.onresult = (e) => {
-          let final = '';
-          for (let i = e.resultIndex; i < e.results.length; i++) {
-            if (e.results[i].isFinal) final += e.results[i][0].transcript + ' ';
-          }
-          if (final) {
-            transcript.value += final;
-            status.textContent = `📝 ${transcript.value.trim().length} chars`;
-          }
-        };
-
-        recognition.onstart = () => {
-          recBtn.textContent = '🔴 Recording...';
-          recBtn.classList.add('pulse');
-          stopBtn.disabled = false;
-          log('🎙️ Recording started');
-        };
-
-        recognition.onend = () => {
-          recBtn.textContent = '🎙️ Start Recording';
-          recBtn.classList.remove('pulse');
-          stopBtn.disabled = true;
-          log('⏹️ Recording stopped');
-        };
-
-        recognition.onerror = (e) => {
-          log(`❌ Error: ${e.error}`, 'err');
-          status.textContent = `Error: ${e.error}`;
-        };
-
-        // ✅ Enable controls
-        initBtn.disabled = true;
-        recBtn.disabled = false;
-        status.textContent = '🟢 Ready! Click "Start Recording"';
-
-      } catch (err) {
-        log(`❌ Mic access failed: ${err.message}`, 'err');
-        status.textContent = '🚫 Failed: ' + (err.name === 'NotAllowedError' ? 'Allow mic in browser' : err.message);
-        alert('Microphone access denied. Please allow it and reload.');
+    function setupRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        log('❌ STT not supported. Use Chrome/Edge.', 'err');
+        recBtn.disabled = true;
+        return;
       }
-    });
+      recognition = new SpeechRecognition();
+      updateRecognitionLang();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
 
-    // ✅ STEP 2: Load Voices
-    function loadVoices() {
-      setTimeout(() => {
-        voicesList = speechSynthesis.getVoices();
-        voices.innerHTML = '';
-        if (voicesList.length === 0) {
-          voices.textContent = '🔇 No voices. Try Chrome desktop.';
-          return;
+      recognition.onstart = () => {
+        recognizing = true;
+        recBtn.textContent = '🎙️ Recording...';
+        stopBtn.disabled = false;
+        metaInfo.textContent = '🎤 Speak now (max 1 hour)';
+        log('🎙️ Recording started');
+        maxRecordingTimeout = setTimeout(() => {
+          log('⏱️ Max time reached. Stopping...', 'err');
+          recognition.stop();
+        }, 3600000);
+      };
+
+      recognition.onend = () => {
+        recognizing = false;
+        clearTimeout(maxRecordingTimeout);
+        recBtn.textContent = '🎤 Start Recording';
+        stopBtn.disabled = true;
+        log('⏹️ Recording stopped');
+      };
+
+      recognition.onerror = (ev) => {
+        recognizing = false;
+        clearTimeout(maxRecordingTimeout);
+        log(`❌ Error: ${ev.error}`, 'err');
+        metaInfo.textContent = `Error: ${ev.error}`;
+        stopBtn.disabled = true;
+        recBtn.textContent = '🎤 Start Recording';
+      };
+
+      recognition.onresult = (ev) => {
+        let finalTranscript = '';
+        for (let i = ev.resultIndex; i < ev.results.length; i++) {
+          if (ev.results[i].isFinal) {
+            finalTranscript += ev.results[i][0].transcript + ' ';
+          }
         }
-        voicesList.forEach((v, i) => {
-          const div = document.createElement('div');
-          div.className = 'voice-item';
-          div.innerHTML = `<strong>${v.name}</strong> <small style="color:#889">${v.lang}</small>`;
-          div.dataset.idx = i;
-          div.addEventListener('click', () => {
-            document.querySelectorAll('.voice-item').forEach(el => el.classList.remove('selected'));
-            div.classList.add('selected');
-            selectedVoiceIndex = i;
-            log(`✅ Voice: ${v.name}`);
-          });
-          voices.appendChild(div);
-        });
-        log(`✅ Loaded ${voicesList.length} voices`);
-      }, 500);
+        if (finalTranscript) {
+          transcriptEl.value = (transcriptEl.value + finalTranscript).trim();
+          metaInfo.textContent = `Captured: ${transcriptEl.value.length} chars`;
+        }
+      };
     }
 
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-      speechSynthesis.onvoiceschanged = loadVoices;
+    function updateRecognitionLang() {
+      if (recognition) {
+        const langMap = { en: 'en-US', hi: 'hi-IN', es: 'es-ES' };
+        recognition.lang = langMap[inputLang.value] || 'en-US';
+      }
     }
 
-    // ✅ Recording Controls
+    setupRecognition();
+    inputLang.addEventListener('change', updateRecognitionLang);
+
     recBtn.addEventListener('click', () => {
-      if (recognition) recognition.start();
+      if (!recognition) return;
+      try { recognition.start(); } catch (e) { log(`❌ Failed: ${e.message}`, 'err'); }
     });
 
     stopBtn.addEventListener('click', () => {
-      if (recognition) recognition.stop();
+      if (recognition && recognizing) recognition.stop();
     });
 
-    // ✅ Playback
-    function speak(text, label) {
-      if (!text) return log(`Nothing to play: ${label}`, 'err');
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.rate = 1.0;
-      utter.pitch = 1.0;
+    modeSel.addEventListener('change', () => {
+      proxySettings.style.display = modeSel.value === 'remote' ? 'block' : 'none';
+    });
 
-      if (selectedVoiceIndex !== null && voicesList[selectedVoiceIndex]) {
-        utter.voice = voicesList[selectedVoiceIndex];
-      } else {
-        const lang = {
-          'british-rp': 'en-GB',
-          'australian': 'en-AU',
-          'american-general': 'en-US'
-        }[accentSelect.value] || 'en-US';
-        const matched = voicesList.find(v => v.lang.startsWith(lang));
-        utter.voice = matched || voicesList[0] || null;
+    let voices = [];
+    function loadVoices() {
+      voices = speechSynthesis.getVoices();
+      voicesList.innerHTML = '';
+      if (voices.length === 0) {
+        voicesList.textContent = '🔇 No voices. Try Chrome desktop.';
+        return;
       }
-
-      speechSynthesis.cancel();
-      speechSynthesis.speak(utter);
-      log(`▶ Playing: ${label}`);
+      voices.forEach((v, i) => {
+        const div = document.createElement('div');
+        div.style.padding = '6px';
+        div.style.borderBottom = '1px dashed rgba(255,255,255,0.02)';
+        div.style.cursor = 'pointer';
+        div.innerHTML = `<strong>${v.name}</strong> <span style="font-size:11px;color:#889">${v.lang}${v.localService?' 🌐':''}${v.default?' ⭐':''}</span>`;
+        div.dataset.index = i;
+        div.addEventListener('click', () => {
+          Array.from(voicesList.children).forEach(el => el.style.background = 'transparent');
+          div.style.background = 'rgba(255,255,255,0.02)';
+          voicesList.dataset.selected = i;
+          log(`✅ Voice selected: ${v.name}`);
+        });
+        voicesList.appendChild(div);
+      });
     }
 
-    playOriginal.addEventListener('click', () => speak(transcript.value, 'Original'));
-    playAccent.addEventListener('click', () => speak(accentText.value, 'Accent'));
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    refreshVoicesBtn.addEventListener('click', () => {
+      speechSynthesis.onvoiceschanged = null;
+      setTimeout(() => {
+        speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
+      }, 100);
+    });
+    loadVoices();
 
-    // ✅ Accent Conversion
-    clearBtn.addEventListener('click', () => {
-      transcript.value = '';
-      accentText.value = '';
-      status.textContent = 'EmptyEntries cleared';
+    function playText(text, purpose) {
+      if (!text) { log(`Nothing to play (${purpose})`, 'err'); return; }
+      const utter = new SpeechSynthesisUtterance(text);
+      const selectedIndex = voicesList.dataset.selected;
+      if (selectedIndex !== undefined && voices[selectedIndex]) {
+        utter.voice = voices[selectedIndex];
+      } else {
+        const accentLang = {
+          'british-rp': 'en-GB', 'australian': 'en-AU', 'american-general': 'en-US',
+          'indian-english': 'en-IN', 'nigerian-english': 'en-NG', 'scottish': 'en-GB',
+          'southern-us': 'en-US', 'irish': 'en-IE'
+        }[accentSelect.value];
+        const matchedVoice = voices.find(v => v.lang.startsWith(accentLang));
+        if (matchedVoice) utter.voice = matchedVoice;
+      }
+      utter.rate = 1.0; utter.pitch = 1.0;
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utter);
+      log(`▶ Playing ${purpose}...`);
+    }
+
+    playOriginalBtn.addEventListener('click', () => playText(transcriptEl.value, 'original'));
+    playAccentBtn.addEventListener('click', () => playText(accentTextEl.value, 'accented'));
+
+    copyAccentBtn.addEventListener('click', () => {
+      const text = accentTextEl.value;
+      if (!text) return log('Nothing to copy', 'err');
+      navigator.clipboard.writeText(text)
+        .then(() => log('📋 Copied'), e => log('❌ Copy failed: ' + e, 'err'));
     });
 
-    transcript.addEventListener('dblclick', () => {
-      const text = transcript.value.trim();
-      if (!text) return;
-      // Simple word substitution
-      const map = {
-        'british-rp': { 'elevator': 'lift', 'apartment': 'flat', 'store': 'shop' },
-        'australian': { 'hello': 'g’day' },
-        'american-general': {}
-      }[accentSelect.value];
+    downloadTxtBtn.addEventListener('click', () => {
+      const text = accentTextEl.value || transcriptEl.value || '';
+      if (!text) return log('Nothing to download', 'err');
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement('a'), { href: url, download: 'accent-text.txt' });
+      a.style.display = 'none'; document.body.appendChild(a); a.click();
+      document.body.removeChild(a); URL.revokeObjectURL(url);
+      log('💾 Saved as accent-text.txt');
+    });
 
+    function localAccentTransform(text, accent) {
+      if (!text.trim()) return { accent_text: '', phonetic: '', speech_tags: '' };
+      const substitutions = {
+        'british-rp': [['store','shop'],['elevator','lift'],['apartment','flat']],
+        'australian': [['hello','g’day'],['apartment','unit']],
+        'indian-english': [['elevator','lift'],['bathroom','washroom']],
+        'southern-us': [['you all','y’all'],['hello','howdy']]
+      };
       let result = text;
-      Object.entries(map || {}).forEach(([from, to]) => {
+      (substitutions[accent] || []).forEach(([from, to]) => {
         const re = new RegExp(`\\b${from}\\b`, 'gi');
-        result = result.replace(re, to);
+        result = result.replace(re, match => {
+          if (match === match.toUpperCase()) return to.toUpperCase();
+          if (match[0] === match[0].toUpperCase()) return to.charAt(0).toUpperCase() + to.slice(1);
+          return to;
+        });
       });
+      const phonetic = { 'british-rp': '/aɪm ˈɡəʊɪŋ tə ðə ʃɒp/', 'australian': '/aɪm ˈɡəʉɪŋ tə ðə ʃɒp/' }[accent] || '';
+      return { accent_text: result, phonetic, speech_tags: `[Accent: ${accent}]` };
+    }
 
-      accentText.value = result;
-      status.textContent = '🎯 Accent converted!';
+    async function callRemoteProxy(url, lang, text, accent) {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language: lang, text, target_accent: accent })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.accent_text) throw new Error('Invalid response');
+      return data;
+    }
+
+    async function convertText() {
+      const text = transcriptEl.value.trim();
+      if (!text) return log('Nothing to convert', 'err');
+      accentTextEl.value = ''; phoneticEl.value = '';
+      metaInfo.textContent = '🔄 Converting...';
+      try {
+        let result;
+        if (modeSel.value === 'local') {
+          result = localAccentTransform(text, accentSelect.value);
+          log('✅ Local transform applied');
+        } else {
+          const url = proxyUrlInput.value.trim();
+          if (!url) throw new Error('Proxy URL required');
+          result = await callRemoteProxy(url, inputLang.value, text, accentSelect.value);
+          log('✅ Remote transform applied');
+        }
+        accentTextEl.value = result.accent_text;
+        phoneticEl.value = [result.phonetic, result.speech_tags].filter(Boolean).join('\n');
+        metaInfo.textContent = '🎯 Conversion complete';
+      } catch (err) {
+        log(`❌ Failed: ${err.message}`, 'err');
+        metaInfo.textContent = '⚠️ Fallback...';
+        try {
+          const fallback = localAccentTransform(text, accentSelect.value);
+          accentTextEl.value = fallback.accent_text;
+          phoneticEl.value = fallback.phonetic + '\n' + fallback.speech_tags;
+          log('🔁 Fallback applied');
+        } catch (e) { metaInfo.textContent = '❌ Failed'; }
+      }
+    }
+
+    transcriptEl.addEventListener('dblclick', convertText);
+    document.addEventListener('keydown', e => {
+      if (e.key.toLowerCase() === 's' && e.ctrlKey) {
+        transcriptEl.value = "I'm going to the store to buy some cookies.";
+        convertText();
+      }
     });
 
-    log('💡 Click Step 1 to begin.');
+    log('✅ Ready. Tap 🎤 to start. Best on Chrome/Edge.');
+// Clear buttons
+document.getElementById('clearTranscript').addEventListener('click', () => {
+  transcriptEl.value = '';
+  metaInfo.textContent = 'Transcript cleared';
+  log('🗑 Transcript history cleared', 'success');
+});
+
+document.getElementById('clearAccent').addEventListener('click', () => {
+  accentTextEl.value = '';
+  phoneticEl.value = '';
+  metaInfo.textContent = 'Accent text cleared';
+  log('🗑 Accent text cleared', 'success');
+});
+    <script src="config.js"></script>
+<script src="accent.js"></script>
+
+
   </script>
 </body>
 </html>
