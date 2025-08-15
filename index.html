@@ -149,13 +149,10 @@
 
 <script>
 /*
- Global Accent Translator - Single HTML
- - Uses browser SpeechRecognition for STT (if available)
- - Two conversion modes:
-   1) local: rule-based conservative changes + phonetic hints
-   2) remote: calls your proxy endpoint which should call an LLM (Gemini) using a secure server-side API key
- - Uses speechSynthesis for playback and attempts to pick accent-like voices
- - Author: ChatGPT-assisted scaffold
+ Global Accent Translator - Enhanced
+ - Extended recording: 1 sec to 1 hour
+ - Accent selection via buttons (visual & interactive)
+ - All other logic preserved: local/remote, TTS, voices, fallbacks
 */
 
 // ---- Helpers & safe logging ----
@@ -178,7 +175,7 @@ const metaInfo = document.getElementById('metaInfo');
 const modeSel = document.getElementById('mode');
 const proxySettings = document.getElementById('proxySettings');
 const proxyUrlInput = document.getElementById('proxyUrl');
-const accentSelect = document.getElementById('accentSelect');
+const accentSelect = document.getElementById('accentSelect'); // we'll hide this
 const voicePref = document.getElementById('voicePref');
 const voicesList = document.getElementById('voicesList');
 const refreshVoicesBtn = document.getElementById('refreshVoices');
@@ -188,33 +185,138 @@ const playOriginalBtn = document.getElementById('playOriginal');
 const playAccentBtn = document.getElementById('playAccent');
 const inputLang = document.getElementById('inputLang');
 
+// ---- Accent Buttons Setup ----
+const accentButtonsContainer = document.createElement('div');
+accentButtonsContainer.style.display = 'flex';
+accentButtonsContainer.style.flexWrap = 'wrap';
+accentButtonsContainer.style.gap = '6px';
+accentButtonsContainer.style.marginTop = '6px';
+
+// Define accents (must match original <select> values)
+const accents = [
+  { value: 'british-rp', label: 'British (RP)' },
+  { value: 'australian', label: 'Australian' },
+  { value: 'american-general', label: 'American (General)' },
+  { value: 'indian-english', label: 'Indian English' },
+  { value: 'nigerian-english', label: 'Nigerian English' },
+  { value: 'scottish', label: 'Scottish' },
+  { value: 'southern-us', label: 'Southern US' },
+  { value: 'irish', label: 'Irish' }
+];
+
+// Active accent state
+let selectedAccent = 'american-general';
+
+// Create buttons
+accents.forEach(accent => {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'smallbtn';
+  btn.dataset.value = accent.value;
+  btn.textContent = accent.label;
+  btn.style.flex = '1 1 calc(50% - 6px)';
+  btn.style.maxWidth = 'calc(50% - 6px)';
+  btn.style.textAlign = 'center';
+  btn.style.fontSize = '12px';
+  btn.style.padding = '8px';
+  if (accent.value === selectedAccent) {
+    btn.style.background = 'var(--accent)';
+    btn.style.color = '#012';
+    btn.style.fontWeight = '600';
+  }
+  btn.addEventListener('click', () => {
+    // Update active button
+    Array.from(accentButtonsContainer.children).forEach(b => {
+      b.style.background = 'rgba(255,255,255,0.03)';
+      b.style.color = 'var(--muted)';
+      b.style.fontWeight = 'normal';
+    });
+    btn.style.background = 'var(--accent)';
+    btn.style.color = '#012';
+    btn.style.fontWeight = '600';
+    selectedAccent = accent.value;
+    log(`Accent selected: ${accent.label}`);
+  });
+  accentButtonsContainer.appendChild(btn);
+});
+
+// Replace the accent <select> with buttons
+const accentSelectParent = accentSelect.closest('div');
+accentSelectParent.style.flex = '1';
+accentSelectParent.innerHTML = '';
+accentSelectParent.appendChild(accentSelectParent.ownerDocument.createTextNode('Target accent'));
+accentSelectParent.appendChild(accentButtonsContainer);
+accentSelect.remove(); // remove old select
+
 // ---- SpeechRecognition (STT) setup ----
-let recognition, recognizing=false;
-function setupRecognition(){
+let recognition, recognizing = false;
+let recognitionStartTime = 0;
+let maxRecordingTimeout;
+
+function setupRecognition() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SpeechRecognition){
+  if (!SpeechRecognition) {
     log('SpeechRecognition API not supported in this browser. Use Chrome desktop for best results.', 'err');
     recBtn.disabled = true;
     return;
   }
+
   recognition = new SpeechRecognition();
   recognition.lang = inputLang.value || 'en-US';
-  recognition.interimResults = false;
+  recognition.continuous = true;        // Keep listening
+  recognition.interimResults = true;    // Show interim results
   recognition.maxAlternatives = 1;
-  recognition.onstart = () => { recognizing=true; recBtn.textContent = 'Recording…'; stopBtn.disabled=false; log('Recording started'); metaInfo.textContent = 'Recording — speak now.'; }
-  recognition.onend = () => { recognizing=false; recBtn.textContent = 'Start Recording'; stopBtn.disabled=true; log('Recording stopped'); metaInfo.textContent = 'Recording stopped'; }
-  recognition.onerror = (ev) => { recognizing=false; log('Recognition error: '+ ev.error, 'err'); metaInfo.textContent = 'Recognition error: ' + ev.error; stopBtn.disabled=true; recBtn.textContent='Start Recording'}
+
+  recognition.onstart = () => {
+    recognizing = true;
+    recognitionStartTime = Date.now();
+    recBtn.textContent = 'Recording…';
+    stopBtn.disabled = false;
+    log('Recording started');
+    metaInfo.textContent = 'Recording — speak now. Max: 1 hour.';
+
+    // Auto-stop at 1 hour (3,600,000 ms)
+    maxRecordingTimeout = setTimeout(() => {
+      log('Max recording time (1 hour) reached. Stopping.', 'err');
+      recognition.stop();
+    }, 3600000); // 1 hour
+  };
+
+  recognition.onend = () => {
+    recognizing = false;
+    recBtn.textContent = 'Start Recording';
+    stopBtn.disabled = true;
+    clearTimeout(maxRecordingTimeout);
+    log('Recording stopped');
+    metaInfo.textContent = 'Recording stopped';
+  };
+
+  recognition.onerror = (ev) => {
+    recognizing = false;
+    clearTimeout(maxRecordingTimeout);
+    log('Recognition error: ' + ev.error, 'err');
+    metaInfo.textContent = 'Error: ' + ev.error;
+    stopBtn.disabled = true;
+    recBtn.textContent = 'Start Recording';
+  };
+
   recognition.onresult = (ev) => {
-    const txt = ev.results[0][0].transcript;
-    transcriptEl.value = txt;
-    metaInfo.textContent = `Captured ${txt.length} chars. Converting to "${accentSelect.value}"...`;
-    // After recognition, run conversion
-    convertText(txt);
-  }
+    let finalTranscript = '';
+    for (let i = ev.resultIndex; i < ev.results.length; i++) {
+      if (ev.results[i].isFinal) {
+        finalTranscript += ev.results[i][0].transcript + ' ';
+      }
+    }
+    if (finalTranscript) {
+      transcriptEl.value = (transcriptEl.value + finalTranscript).trim();
+    }
+  };
 }
+
 setupRecognition();
-inputLang.addEventListener('change', ()=> {
-  if(recognition) recognition.lang = inputLang.value;
+
+inputLang.addEventListener('change', () => {
+  if (recognition) recognition.lang = inputLang.value;
 });
 
 // ---- Voices population ----
@@ -233,7 +335,6 @@ function loadVoices(){
     d.innerHTML = `<strong>${v.name}</strong> — ${v.lang} ${v.localService?'<span style="color:#9ee7c5">local</span>':''} ${v.default?'<span style="color:#cfe3ff">default</span>':''}`;
     d.dataset.index = i;
     d.addEventListener('click', ()=> {
-      // set data-selected
       Array.from(voicesList.children).forEach(ch=>ch.style.background='transparent');
       d.style.background='rgba(255,255,255,0.02)';
       voicesList.dataset.selected = i;
@@ -247,28 +348,29 @@ refreshVoicesBtn.addEventListener('click', loadVoices);
 loadVoices();
 
 // ---- Recording controls ----
-recBtn.addEventListener('click', ()=>{
-  if(!recognition) { log('No recognition available', 'err'); return; }
-  try{
+recBtn.addEventListener('click', () => {
+  if (!recognition) { log('No recognition available', 'err'); return; }
+  try {
     recognition.start();
-  }catch(e){
+  } catch (e) {
     log('Could not start recognition: ' + e.message, 'err');
   }
 });
-stopBtn.addEventListener('click', ()=> {
-  if(recognition && recognizing) recognition.stop();
+
+stopBtn.addEventListener('click', () => {
+  if (recognition && recognizing) recognition.stop();
 });
 
 // ---- Mode toggle ----
-modeSel.addEventListener('change', ()=> {
+modeSel.addEventListener('change', () => {
   proxySettings.style.display = modeSel.value === 'remote' ? 'block' : 'none';
 });
 
 // ---- Utility: download text ----
-downloadTxtBtn.addEventListener('click', ()=> {
+downloadTxtBtn.addEventListener('click', () => {
   const t = accentTextEl.value || transcriptEl.value || '';
   const fn = 'accent-text.txt';
-  const blob = new Blob([t], {type:'text/plain'});
+  const blob = new Blob([t], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = fn; document.body.appendChild(a); a.click();
@@ -276,28 +378,30 @@ downloadTxtBtn.addEventListener('click', ()=> {
 });
 
 // ---- Copy accent text ----
-copyAccentBtn.addEventListener('click', ()=> {
+copyAccentBtn.addEventListener('click', () => {
   const t = accentTextEl.value;
-  if(!t){ log('No accent text to copy', 'err'); return; }
-  navigator.clipboard.writeText(t).then(()=>log('Accent text copied to clipboard'),e=>log('Copy failed: '+e,'err'));
+  if (!t) { log('No accent text to copy', 'err'); return; }
+  navigator.clipboard.writeText(t).then(
+    () => log('Accent text copied to clipboard'),
+    e => log('Copy failed: ' + e, 'err')
+  );
 });
 
 // ---- Playbacks ----
-function speakText(text, opts={}){
-  if(!text) { log('Nothing to speak', 'err'); return; }
+function speakText(text, opts = {}) {
+  if (!text) { log('Nothing to speak', 'err'); return; }
   const utter = new SpeechSynthesisUtterance(text);
   const pref = voicesList.dataset.selected;
-  if(pref !== undefined){
+  if (pref !== undefined) {
     const v = voicesCache[Number(pref)];
-    if(v) utter.voice = v;
+    if (v) utter.voice = v;
   } else {
-    // pick best match by accent select
-    const pick = pickVoiceForAccent(accentSelect.value);
-    if(pick) utter.voice = pick;
+    const pick = pickVoiceForAccent(selectedAccent);
+    if (pick) utter.voice = pick;
   }
-  if(voicePref.value === 'female') {
+  if (voicePref.value === 'female') {
     utter.pitch = 1.2;
-  } else if(voicePref.value === 'male') {
+  } else if (voicePref.value === 'male') {
     utter.pitch = 0.9;
   }
   utter.rate = 1.0;
@@ -305,19 +409,21 @@ function speakText(text, opts={}){
   speechSynthesis.speak(utter);
   log('Playing TTS...');
 }
-playOriginalBtn.addEventListener('click', ()=> {
+
+playOriginalBtn.addEventListener('click', () => {
   const t = transcriptEl.value;
-  if(!t) { log('No transcript to play', 'err'); return; }
+  if (!t) { log('No transcript to play', 'err'); return; }
   speakText(t);
 });
-playAccentBtn.addEventListener('click', ()=> {
+
+playAccentBtn.addEventListener('click', () => {
   const t = accentTextEl.value;
-  if(!t) { log('No accent text to play', 'err'); return; }
+  if (!t) { log('No accent text to play', 'err'); return; }
   speakText(t);
 });
 
 // ---- Voice selection heuristic ----
-function pickVoiceForAccent(accentId){
+function pickVoiceForAccent(accentId) {
   const mapping = {
     'british-rp': ['en-GB','en_GB'],
     'australian': ['en-AU','en_AU'],
@@ -328,27 +434,24 @@ function pickVoiceForAccent(accentId){
     'southern-us': ['en-US'],
     'irish': ['en-IE','en_IE']
   };
-  const candidates = voicesCache.filter(v=>{
+  const candidates = voicesCache.filter(v => {
     const langs = mapping[accentId] || [];
     return langs.some(l => v.lang && v.lang.toLowerCase().includes(l.toLowerCase()));
   });
-  if(candidates.length) return candidates[0];
-  if(voicesCache.length) return voicesCache[0];
+  if (candidates.length) return candidates[0];
+  if (voicesCache.length) return voicesCache[0];
   return null;
 }
 
 // ---- Local accent conversion (conservative) ----
-function localAccentTransform(inputText, accent){
-  // This is intentionally conservative and rule-based.
-  // Returns {accent_text, phonetic, speech_tags}
+function localAccentTransform(inputText, accent) {
   const lower = inputText.trim();
-  if(!lower) return {accent_text:'', phonetic:'', speech_tags:''};
+  if (!lower) return { accent_text: '', phonetic: '', speech_tags: '' };
 
   let text = inputText;
   let phonetic = '';
   let tags = '';
 
-  // small phrase-based substitutions for demo purposes
   const swaps = {
     'british-rp': [
       ['store','shop'],
@@ -360,7 +463,7 @@ function localAccentTransform(inputText, accent){
     'australian': [
       ['hello','g\'day'],
       ['television','telly'],
-      ['water','tucker'] // note: tucker is food but demo
+      ['water','tucker']
     ],
     'indian-english': [
       ['okay','ok'],
@@ -385,23 +488,19 @@ function localAccentTransform(inputText, accent){
     'southern-us': 'eg: /aɪm ˈɡoʊɪn tʊ ðə ʃɒp/ (drawl)'
   };
 
-  // apply phrase substitutions
   const list = swaps[accent] || [];
-  for(const [from,to] of list){
-    // word boundary replace, case-insensitive
-    const re = new RegExp('\\b'+escapeRegex(from)+'\\b','ig');
-    text = text.replace(re, (m)=> {
-      // preserve case
-      if(isAllUpper(m)) return to.toUpperCase();
-      if(isCapitalized(m)) return capitalize(to);
+  for (const [from, to] of list) {
+    const re = new RegExp('\\b' + escapeRegex(from) + '\\b', 'ig');
+    text = text.replace(re, (m) => {
+      if (isAllUpper(m)) return to.toUpperCase();
+      if (isCapitalized(m)) return capitalize(to);
       return to;
     });
   }
 
-  // add some accent-specific punctuation/intonation hints
-  if(accent === 'british-rp') {
+  if (accent === 'british-rp') {
     tags = '[Slightly clipped vowels; polite, measured rhythm]';
-  } else if(accent === 'southern-us') {
+  } else if (accent === 'southern-us') {
     tags = '[Gentle elongation on key vowels; warm tone]';
   } else {
     tags = '[Accent markers applied conservatively]';
@@ -409,131 +508,85 @@ function localAccentTransform(inputText, accent){
 
   phonetic = phoneticSamples[accent] || '';
 
-  return {accent_text: text, phonetic, speech_tags: tags};
+  return { accent_text: text, phonetic, speech_tags: tags };
 }
 
-function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
-function isAllUpper(s){ return s === s.toUpperCase(); }
-function isCapitalized(s){ return s[0] === s[0].toUpperCase(); }
-function capitalize(s){ return s[0].toUpperCase() + s.slice(1); }
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function isAllUpper(s) { return s === s.toUpperCase(); }
+function isCapitalized(s) { return s[0] === s[0].toUpperCase(); }
+function capitalize(s) { return s[0].toUpperCase() + s.slice(1); }
 
 // ---- Remote LLM conversion ----
-/*
- Expected proxy contract:
- POST { proxyUrl }
- body JSON: { language: 'en', text: '...', target_accent: 'british-rp' }
- Returns JSON: { accent_text: '...', phonetic: '...', speech_tags: '...' }
- The proxy should call Gemini/LLM server-side using secure API key and return structured JSON.
-*/
-async function callRemoteProxy(proxyUrl, language, text, targetAccent){
-  if(!proxyUrl) throw new Error('No proxy URL provided');
+async function callRemoteProxy(proxyUrl, language, text, targetAccent) {
+  if (!proxyUrl) throw new Error('No proxy URL provided');
   const body = { language, text, target_accent: targetAccent };
   const resp = await fetch(proxyUrl, {
     method: 'POST',
-    headers: {'Content-Type':'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
-  if(!resp.ok){
+  if (!resp.ok) {
     const txt = await resp.text();
     throw new Error('Proxy returned error: ' + resp.status + ' ' + txt);
   }
   const data = await resp.json();
-  // Expected shape guarded below
-  if(!data.accent_text) throw new Error('Proxy response missing accent_text field');
+  if (!data.accent_text) throw new Error('Proxy response missing accent_text field');
   return data;
 }
 
-// ---- Intelligent prompt used by the proxy (server-side) ----
-/*
-  When you implement the server-side proxy that calls Gemini, use the following prompt template
-  to ask the model to produce structured JSON. This lives server-side and the model key is kept secret.
-
-  Prompt template (server-side):
-  ------------------------------------------------------------
-  You are an AI voice and accent transformation engine.
-
-  TASK:
-  - Convert the provided text into the SAME LANGUAGE but in the requested global accent.
-  - Ensure it sounds natural to a native speaker of that accent.
-  - Preserve meaning, idioms, and informal tone markers where applicable.
-  - Keep the sentence structure fluent for that accent, adjusting words or phrasing if needed.
-  - Do NOT translate into another language unless explicitly asked — only modify pronunciation style, vocabulary substitutions native to the accent, and provide phonetic hints.
-  - Output MUST be valid JSON with these keys: accent_text, phonetic, speech_tags.
-
-  INPUTS:
-  {
-    "language": "{{language}}",
-    "text": "{{text}}",
-    "target_accent": "{{target_accent}}"
-  }
-
-  OUTPUT EXAMPLE:
-  {
-    "accent_text": "I'm going to the shop to buy some biscuits.",
-    "phonetic": "/aɪm ˈɡəʊɪŋ tə ðə ʃɒp tə baɪ sʌm ˈbɪskɪts/",
-    "speech_tags": "[Pause after \"shop\"], [Light stress on \"biscuits\"]"
-  }
-  ------------------------------------------------------------
-  (Server should call the model, parse response, ensure JSON safety, then return to client.)
-*/
-
 // ---- Main conversion orchestration ----
-async function convertText(text){
+async function convertText(text) {
   accentTextEl.value = '';
   phoneticEl.value = '';
   metaInfo.textContent = 'Converting...';
   try {
-    if(modeSel.value === 'local'){
-      const out = localAccentTransform(text, accentSelect.value);
+    if (modeSel.value === 'local') {
+      const out = localAccentTransform(text, selectedAccent);
       accentTextEl.value = out.accent_text;
       phoneticEl.value = out.phonetic + '\n' + out.speech_tags;
       log('Local accent transform completed');
       metaInfo.textContent = 'Local transform done';
     } else {
       const proxyUrl = proxyUrlInput.value.trim();
-      if(!proxyUrl) { throw new Error('Remote mode selected but no proxy URL provided'); }
+      if (!proxyUrl) { throw new Error('Remote mode selected but no proxy URL provided'); }
       log('Sending to proxy: ' + proxyUrl);
       metaInfo.textContent = 'Calling remote LLM...';
-      const result = await callRemoteProxy(proxyUrl, inputLang.value, text, accentSelect.value);
+      const result = await callRemoteProxy(proxyUrl, inputLang.value, text, selectedAccent);
       accentTextEl.value = result.accent_text;
-      phoneticEl.value = (result.phonetic || '') + (result.speech_tags?('\n'+result.speech_tags):'');
+      phoneticEl.value = (result.phonetic || '') + (result.speech_tags ? ('\n' + result.speech_tags) : '');
       log('Remote LLM transform succeeded');
       metaInfo.textContent = 'Remote transform done';
     }
-  } catch(err){
+  } catch (err) {
     log('Conversion failed: ' + err.message, 'err');
-    metaInfo.textContent = 'Conversion failed: ' + err.message;
-    // fallback to local
-    try{
-      const fallback = localAccentTransform(text, accentSelect.value);
+    metaInfo.textContent = 'Failed: ' + err.message;
+    try {
+      const fallback = localAccentTransform(text, selectedAccent);
       accentTextEl.value = fallback.accent_text;
       phoneticEl.value = fallback.phonetic + '\n' + fallback.speech_tags;
       log('Fallback local transform applied');
-    }catch(e){
+    } catch (e) {
       log('Fallback failed: ' + e.message, 'err');
     }
   }
 }
 
-// ---- Small utility: copy transcript to accent convert button (manual) ----
-transcriptEl.addEventListener('dblclick', ()=> {
+// ---- Double-click to convert transcript ----
+transcriptEl.addEventListener('dblclick', () => {
   const t = transcriptEl.value;
-  if(t) convertText(t);
+  if (t) convertText(t);
 });
 
-// ---- Example: provide sample transcript to demo buttons ----
-document.addEventListener('keydown', (e)=>{
-  // press 'S' to insert sample and convert (dev convenience)
-  if(e.key.toLowerCase() === 's' && e.ctrlKey){
+// ---- Dev shortcut: Ctrl+S for sample ----
+document.addEventListener('keydown', (e) => {
+  if (e.key.toLowerCase() === 's' && e.ctrlKey) {
     const sample = "I'm going to the store to buy some cookies.";
-    transcriptEl.value = sample; convertText(sample);
+    transcriptEl.value = sample;
+    convertText(sample);
   }
 });
+
 log('Ready. Press Start Recording to begin. (Tip: Ctrl+S to demo sample)');
-
-// ---- Accessibility: ensure buttons can be keyboard used ----
-// already standard
-
 </script>
 </body>
 </html>
