@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="description" content="Global Accent Translator - Convert speech to different English accents" />
 <title>Global Accent Translator</title>
 <style>
   :root{
@@ -83,7 +84,7 @@
     <header>
       <div>
         <h1>🌍 Global Accent Translator</h1>
-        <p class="lead">Speak → convert accent → play. Works best on Chrome/Edge → ( Created By Samar Jeet Jamwal) !</p>
+        <p class="lead">Speak → convert accent → play. Works best on Chrome/Edge → (Created By Samar Jeet Jamwal)</p>
       </div>
     </header>
 
@@ -114,7 +115,7 @@
 
         <div id="proxySettings" style="display:none;margin-bottom:10px">
           <label class="small">Proxy URL (your server)</label>
-          <input id="proxyUrl" class="input" placeholder="https://your-proxy.example.com/translate-accent    " />
+          <input id="proxyUrl" class="input" placeholder="https://your-proxy.example.com/translate-accent" />
           <div class="note">Your server calls Gemini/LLM securely. Expects {language, text, target_accent}, returns {accent_text, phonetic, speech_tags}.</div>
         </div>
 
@@ -135,26 +136,25 @@
         <hr style="border:none;border-top:1px solid rgba(255,255,255,0.02);margin:12px 0">
 
         <!-- Transcript -->
-<label class="small">Transcript (auto)</label>
-<div style="display:flex; gap:6px; align-items:center;">
-  <textarea id="transcript" placeholder="Your speech will appear here..." readonly></textarea>
-  <button id="clearTranscript" class="smallbtn" title="Clear transcript">🗑</button>
-</div>
+        <label class="small">Transcript (auto)</label>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <textarea id="transcript" placeholder="Your speech will appear here..." readonly></textarea>
+          <button id="clearTranscript" class="smallbtn" title="Clear transcript">🗑</button>
+        </div>
 
-<!-- Accent Text -->
-<label class="small" style="margin-top:10px">Accent-Converted Text</label>
-<div style="display:flex; gap:6px; align-items:center;">
-  <textarea id="accentText" placeholder="Result will appear here..." readonly></textarea>
-  <button id="clearAccent" class="smallbtn" title="Clear accent text">🗑</button>
-</div>
-
+        <!-- Accent Text -->
+        <label class="small" style="margin-top:10px">Accent-Converted Text</label>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <textarea id="accentText" placeholder="Result will appear here..." readonly></textarea>
+          <button id="clearAccent" class="smallbtn" title="Clear accent text">🗑</button>
+        </div>
 
         <div class="meta" id="metaInfo">Ready to record</div>
 
         <div style="display:flex;gap:10px;margin-top:10px">
-          <button id="playOriginal" class="ghost">▶ Play the Selected Accent</button>
+          <button id="playOriginal" class="ghost">▶ Play Original</button>
           <button id="playAccent" class="ghost">▶ Not to Click</button>
-          </div>
+        </div>
       </div>
 
       <!-- RIGHT: Voices, Phonetic, Actions -->
@@ -183,16 +183,14 @@
     </div>
 
     <footer>
-  <div class="note" style="text-align: center; margin-top: 16px; font-size: 12px; color: #9aa7b2;">
-    &copy; 2025 All rights reserved. Created by Samar Jeet Jamwal.
+      <div class="note" style="text-align: center; margin-top: 16px; font-size: 12px; color: #9aa7b2;">
+        &copy; 2025 All rights reserved. Created by Samar Jeet Jamwal.
+      </div>
+    </footer>
   </div>
-</footer>
-  </div>
-  <script src="config.js"></script>
-<script src="accent.js"></script>
 
   <script>
-    /* Global Accent Translator — Fully Self-Contained */
+    // === LOGGING UTILITY ===
     const logEl = document.getElementById('log');
     function log(msg, type = 'info') {
       const t = new Date().toLocaleTimeString();
@@ -203,6 +201,7 @@
       logEl.prepend(el);
     }
 
+    // === ELEMENTS ===
     const recBtn = document.getElementById('recBtn');
     const stopBtn = document.getElementById('stopBtn');
     const transcriptEl = document.getElementById('transcript');
@@ -220,19 +219,24 @@
     const playOriginalBtn = document.getElementById('playOriginal');
     const playAccentBtn = document.getElementById('playAccent');
     const inputLang = document.getElementById('inputLang');
+    const clearTranscriptBtn = document.getElementById('clearTranscript');
+    const clearAccentBtn = document.getElementById('clearAccent');
 
+    // === SPEECH RECOGNITION SETUP ===
     let recognition, recognizing = false;
     let maxRecordingTimeout;
 
     function setupRecognition() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
-        log('❌ STT not supported. Use Chrome/Edge.', 'err');
+        log('❌ Speech-to-Text not supported. Use Chrome/Edge on desktop.', 'err');
         recBtn.disabled = true;
         return;
       }
+
       recognition = new SpeechRecognition();
       updateRecognitionLang();
+
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.maxAlternatives = 1;
@@ -241,12 +245,13 @@
         recognizing = true;
         recBtn.textContent = '🎙️ Recording...';
         stopBtn.disabled = false;
-        metaInfo.textContent = '🎤 Speak now (max 1 hour)';
+        metaInfo.textContent = '🎤 Speak now (max 1 min)';
         log('🎙️ Recording started');
+
         maxRecordingTimeout = setTimeout(() => {
           log('⏱️ Max time reached. Stopping...', 'err');
           recognition.stop();
-        }, 3600000);
+        }, 60000); // 1 min max (mobile-friendly)
       };
 
       recognition.onend = () => {
@@ -258,12 +263,10 @@
       };
 
       recognition.onerror = (ev) => {
-        recognizing = false;
-        clearTimeout(maxRecordingTimeout);
         log(`❌ Error: ${ev.error}`, 'err');
         metaInfo.textContent = `Error: ${ev.error}`;
-        stopBtn.disabled = true;
-        recBtn.textContent = '🎤 Start Recording';
+        recognition = null;
+        setupRecognition(); // retry setup
       };
 
       recognition.onresult = (ev) => {
@@ -273,8 +276,8 @@
             finalTranscript += ev.results[i][0].transcript + ' ';
           }
         }
-        if (finalTranscript) {
-          transcriptEl.value = (transcriptEl.value + finalTranscript).trim();
+        if (finalTranscript.trim()) {
+          transcriptEl.value += finalTranscript;
           metaInfo.textContent = `Captured: ${transcriptEl.value.length} chars`;
         }
       };
@@ -291,24 +294,30 @@
     inputLang.addEventListener('change', updateRecognitionLang);
 
     recBtn.addEventListener('click', () => {
-      if (!recognition) return;
-      try { recognition.start(); } catch (e) { log(`❌ Failed: ${e.message}`, 'err'); }
+      if (recognizing) return;
+      try {
+        recognition.start();
+      } catch (e) {
+        log(`❌ Failed to start: ${e.message}`, 'err');
+      }
     });
 
     stopBtn.addEventListener('click', () => {
       if (recognition && recognizing) recognition.stop();
     });
 
+    // === MODE SWITCH ===
     modeSel.addEventListener('change', () => {
       proxySettings.style.display = modeSel.value === 'remote' ? 'block' : 'none';
     });
 
+    // === VOICE SYNTHESIS & VOICES ===
     let voices = [];
     function loadVoices() {
       voices = speechSynthesis.getVoices();
       voicesList.innerHTML = '';
       if (voices.length === 0) {
-        voicesList.textContent = '🔇 No voices. Try Chrome desktop.';
+        voicesList.textContent = '🔇 No voices available. Try Chrome on Android/iOS.';
         return;
       }
       voices.forEach((v, i) => {
@@ -328,40 +337,51 @@
       });
     }
 
-    window.speechSynthesis.onvoiceschanged = loadVoices;
+    // Load voices
+    if ('onvoiceschanged' in speechSynthesis) {
+      speechSynthesis.onvoiceschanged = loadVoices;
+    } else {
+      log('⚠️ Voice selection may not work on this device.', 'err');
+      setTimeout(loadVoices, 500);
+    }
+
     refreshVoicesBtn.addEventListener('click', () => {
+      speechSynthesis.cancel();
       speechSynthesis.onvoiceschanged = null;
       setTimeout(() => {
         speechSynthesis.onvoiceschanged = loadVoices;
         loadVoices();
       }, 100);
     });
-    loadVoices();
 
+    // === PLAY TEXT FUNCTION ===
     function playText(text, purpose) {
-      if (!text) { log(`Nothing to play (${purpose})`, 'err'); return; }
+      if (!text.trim()) return log(`Nothing to play (${purpose})`, 'err');
       const utter = new SpeechSynthesisUtterance(text);
       const selectedIndex = voicesList.dataset.selected;
       if (selectedIndex !== undefined && voices[selectedIndex]) {
         utter.voice = voices[selectedIndex];
       } else {
-        const accentLang = {
+        const accentLangMap = {
           'british-rp': 'en-GB', 'australian': 'en-AU', 'american-general': 'en-US',
           'indian-english': 'en-IN', 'nigerian-english': 'en-NG', 'scottish': 'en-GB',
           'southern-us': 'en-US', 'irish': 'en-IE'
-        }[accentSelect.value];
-        const matchedVoice = voices.find(v => v.lang.startsWith(accentLang));
+        };
+        const lang = accentLangMap[accentSelect.value];
+        const matchedVoice = voices.find(v => v.lang.startsWith(lang));
         if (matchedVoice) utter.voice = matchedVoice;
       }
-      utter.rate = 1.0; utter.pitch = 1.0;
+      utter.rate = 0.95; utter.pitch = 0.8;
+      utter.onstart = () => log(`▶ Playing ${purpose}...`);
+      utter.onerror = () => log(`❌ Failed to play ${purpose}`, 'err');
       speechSynthesis.cancel();
       speechSynthesis.speak(utter);
-      log(`▶ Playing ${purpose}...`);
     }
 
     playOriginalBtn.addEventListener('click', () => playText(transcriptEl.value, 'original'));
     playAccentBtn.addEventListener('click', () => playText(accentTextEl.value, 'accented'));
 
+    // === COPY & DOWNLOAD ===
     copyAccentBtn.addEventListener('click', () => {
       const text = accentTextEl.value;
       if (!text) return log('Nothing to copy', 'err');
@@ -374,19 +394,42 @@
       if (!text) return log('Nothing to download', 'err');
       const blob = new Blob([text], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
-      const a = Object.assign(document.createElement('a'), { href: url, download: 'accent-text.txt' });
-      a.style.display = 'none'; document.body.appendChild(a); a.click();
-      document.body.removeChild(a); URL.revokeObjectURL(url);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'accent-text.txt';
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
       log('💾 Saved as accent-text.txt');
     });
 
+    // === CLEAR BUTTONS ===
+    clearTranscriptBtn.addEventListener('click', () => {
+      transcriptEl.value = '';
+      metaInfo.textContent = 'Transcript cleared';
+      log('🗑 Transcript cleared', 'success');
+    });
+
+    clearAccentBtn.addEventListener('click', () => {
+      accentTextEl.value = '';
+      phoneticEl.value = '';
+      metaInfo.textContent = 'Accent text cleared';
+      log('🗑 Accent text cleared', 'success');
+    });
+
+    // === ACCENT CONVERSION ===
     function localAccentTransform(text, accent) {
       if (!text.trim()) return { accent_text: '', phonetic: '', speech_tags: '' };
       const substitutions = {
-        'british-rp': [['store','shop'],['elevator','lift'],['apartment','flat']],
-        'australian': [['hello','g’day'],['apartment','unit']],
-        'indian-english': [['elevator','lift'],['bathroom','washroom']],
-        'southern-us': [['you all','y’all'],['hello','howdy']]
+        'british-rp': [['store', 'shop'], ['elevator', 'lift'], ['apartment', 'flat'], ['color', 'colour']],
+        'australian': [['hello', 'g’day'], ['apartment', 'unit'], ['truck', 'ute']],
+        'indian-english': [['elevator', 'lift'], ['bathroom', 'washroom'], ['truck', 'lorry']],
+        'southern-us': [['you all', 'y’all'], ['hello', 'howdy'], ['car', 'automobile']],
+        'nigerian-english': [['flat', 'apartment'], ['lorry', 'truck'], ['madam', 'ma']],
+        'scottish': [['water', 'waater'], ['house', 'hoose'], ['yes', 'aye']],
+        'irish': [['child', 'wee one'], ['friend', 'lad'], ['pub', 'local']]
       };
       let result = text;
       (substitutions[accent] || []).forEach(([from, to]) => {
@@ -397,27 +440,26 @@
           return to;
         });
       });
-      const phonetic = { 'british-rp': '/aɪm ˈɡəʊɪŋ tə ðə ʃɒp/', 'australian': '/aɪm ˈɡəʉɪŋ tə ðə ʃɒp/' }[accent] || '';
-      return { accent_text: result, phonetic, speech_tags: `[Accent: ${accent}]` };
-    }
-
-    async function callRemoteProxy(url, lang, text, accent) {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ language: lang, text, target_accent: accent })
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (!data.accent_text) throw new Error('Invalid response');
-      return data;
+      const phonetic = {
+        'british-rp': '/aɪm ˈɡəʊɪŋ tə ðə ʃɒp/',
+        'australian': '/aɪm ˈɡəʉɪŋ tə ðə ʃɒp/',
+        'american-general': '/aɪm ˈɡoʊɪŋ tə ðə stɔr/',
+        'indian-english': '/aɪm ˈɡoʊɪŋ tə ðə ˈlɪft/'
+      }[accent] || '';
+      return {
+        accent_text: result,
+        phonetic: phonetic,
+        speech_tags: `[Accent: ${accent}]`
+      };
     }
 
     async function convertText() {
       const text = transcriptEl.value.trim();
       if (!text) return log('Nothing to convert', 'err');
-      accentTextEl.value = ''; phoneticEl.value = '';
+      accentTextEl.value = '';
+      phoneticEl.value = '';
       metaInfo.textContent = '🔄 Converting...';
+
       try {
         let result;
         if (modeSel.value === 'local') {
@@ -426,7 +468,18 @@
         } else {
           const url = proxyUrlInput.value.trim();
           if (!url) throw new Error('Proxy URL required');
-          result = await callRemoteProxy(url, inputLang.value, text, accentSelect.value);
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              language: inputLang.value,
+              text: text,
+              target_accent: accentSelect.value
+            })
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          result = await res.json();
+          if (!result.accent_text) throw new Error('Invalid response format');
           log('✅ Remote transform applied');
         }
         accentTextEl.value = result.accent_text;
@@ -434,42 +487,26 @@
         metaInfo.textContent = '🎯 Conversion complete';
       } catch (err) {
         log(`❌ Failed: ${err.message}`, 'err');
-        metaInfo.textContent = '⚠️ Fallback...';
-        try {
-          const fallback = localAccentTransform(text, accentSelect.value);
-          accentTextEl.value = fallback.accent_text;
-          phoneticEl.value = fallback.phonetic + '\n' + fallback.speech_tags;
-          log('🔁 Fallback applied');
-        } catch (e) { metaInfo.textContent = '❌ Failed'; }
+        metaInfo.textContent = '⚠️ Using fallback...';
+        const fallback = localAccentTransform(text, accentSelect.value);
+        accentTextEl.value = fallback.accent_text;
+        phoneticEl.value = fallback.phonetic + '\n' + fallback.speech_tags;
+        log('🔁 Fallback applied');
       }
     }
 
+    // === TRIGGER CONVERSION ===
     transcriptEl.addEventListener('dblclick', convertText);
     document.addEventListener('keydown', e => {
-      if (e.key.toLowerCase() === 's' && e.ctrlKey) {
+      if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
         transcriptEl.value = "I'm going to the store to buy some cookies.";
         convertText();
       }
     });
 
-    log('✅ Ready. Tap 🎤 to start. Best on Chrome/Edge.');
-// Clear buttons
-document.getElementById('clearTranscript').addEventListener('click', () => {
-  transcriptEl.value = '';
-  metaInfo.textContent = 'Transcript cleared';
-  log('🗑 Transcript history cleared', 'success');
-});
-
-document.getElementById('clearAccent').addEventListener('click', () => {
-  accentTextEl.value = '';
-  phoneticEl.value = '';
-  metaInfo.textContent = 'Accent text cleared';
-  log('🗑 Accent text cleared', 'success');
-});
-    <script src="config.js"></script>
-<script src="accent.js"></script>
-
-
+    // === INIT ===
+    log('✅ Ready. Tap 🎤 to start. Best on Chrome/Edge (desktop or Android).');
   </script>
 </body>
 </html>
