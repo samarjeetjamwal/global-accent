@@ -1,62 +1,71 @@
-// File: /api/accent-translator.js
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+// accent-translator.js
+// 🌍 Global Accent Translator - Client-side Gemini API integration
+// ⚠️ Warning: API key is exposed if used on GitHub Pages (public projects)
 
-  const { text, language, targetAccent } = req.body;
+// 🔑 Replace with your own Gemini API key
+const GEMINI_API_KEY = "YOUR_API_KEY_HERE"; // Example: "AIzaSyD...."
 
-  if (!text || !language || !targetAccent) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
+// 🎤 Capture microphone input and transcribe (browser SpeechRecognition API)
+function startListening() {
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+
+  recognition.onresult = async (event) => {
+    const spokenText = event.results[0][0].transcript;
+    document.getElementById("originalText").textContent = spokenText;
+    const accent = document.getElementById("accentSelect").value;
+    const translated = await translateAccent(spokenText, accent);
+    document.getElementById("translatedText").textContent = translated;
+    speakText(translated);
+  };
+
+  recognition.onerror = (event) => {
+    console.error("Speech recognition error:", event.error);
+  };
+
+  recognition.start();
+}
+
+// 🔄 Send text to Gemini to "translate" into same language but different accent
+async function translateAccent(text, accent) {
+  const prompt = `Take the following English text and rewrite it in the accent style of ${accent}.
+  Do NOT translate to another language, only modify the wording to sound natural in that accent.
+  Text: "${text}"`;
 
   try {
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-    const prompt = `
-You are an AI voice and accent transformation engine.
-
-TASK:
-- Convert the provided text into the SAME LANGUAGE but in the requested global accent.
-- Ensure it sounds natural to a native speaker of that accent.
-- Preserve meaning, idioms, and informal tone markers where applicable.
-- Keep the sentence structure fluent for that accent, adjusting words or phrasing if needed.
-- Do NOT translate to another language unless explicitly asked — only modify the pronunciation style in text form and speech cues.
-
-INPUTS:
-1. Language of input text: ${language}
-2. Original text: """${text}"""
-3. Target accent: ${targetAccent}
-4. Output style: Accent transcription + accent-aware phonetic hints + optional localized vocabulary.
-
-OUTPUT FORMAT:
----
-**Accent-Modified Text:** <natural text in target accent>
-**Phonetic Guide:** <phonetic hints for pronunciation>
-**Speech Tags:** <pauses, emphasis, intonation markers>
----
-    `;
-
     const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + GEMINI_API_KEY,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [
-            { role: 'user', parts: [{ text: prompt }] }
-          ]
+          contents: [{ parts: [{ text: prompt }] }]
         })
       }
     );
 
     const data = await response.json();
-    const outputText = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from Gemini';
-
-    return res.status(200).json({ accentOutput: outputText });
-
-  } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      return data.candidates[0].content.parts[0].text.trim();
+    } else {
+      console.error("Invalid response from Gemini:", data);
+      return "(Error: No translation returned)";
+    }
+  } catch (err) {
+    console.error("Gemini API error:", err);
+    return "(Error: API request failed)";
   }
 }
+
+// 🔊 Speak text aloud using browser TTS
+function speakText(text) {
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.lang = "en-US";
+  speech.pitch = 1;
+  speech.rate = 1;
+  window.speechSynthesis.speak(speech);
+}
+
+// 📌 Event listeners for buttons
+document.getElementById("listenBtn").addEventListener("click", startListening);
