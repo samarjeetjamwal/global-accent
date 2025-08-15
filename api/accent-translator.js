@@ -3,7 +3,7 @@
 // ⚠️ Warning: API key is exposed if used on GitHub Pages (public projects)
 
 // 🔑 Replace with your own Gemini API key
-const GEMINI_API_KEY = "YOUR_API_KEY_HERE"; // Example: "AIzaSyD...."
+const GEMINI_API_KEY = "AIzaSyDl0zTraVy57ozoADHu26jCv7GvDMq-_Pw"; // Example: "AIzaSyD...."
 
 // 🎤 Capture microphone input and transcribe (browser SpeechRecognition API)
 function startListening() {
