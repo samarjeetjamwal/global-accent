@@ -1,90 +1,282 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<meta name="description" content="Global Accent Translator - Convert speech to different English accents" />
-<title>Global Accent Translator</title>
-<style>
-  :root{
-    --bg:#0f1724;--card:#0b1220;--muted:#9aa7b2;--accent:#38bdf8;--glass: rgba(255,255,255,0.03);
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  }
-  body{
-    margin:0;min-height:100vh;background:linear-gradient(180deg,#071026 0%,#071623 60%), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2306b6d4" stop-opacity="0.07" offset="0"/><stop stop-color="%230c4a6e" stop-opacity="0.02" offset="1"/></linearGradient></defs><rect width="100%" height="100%" fill="url(%23g)"/></svg>');
-    color:#e6eef6;padding:20px;box-sizing:border-box;display:flex;align-items:flex-start;justify-content:center;
-  }
-  .container{
-    width:980px;max-width:100%;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-radius:12px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03);
-  }
-  header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-  h1{font-size:20px;margin:0;font-weight:600}
-  p.lead{margin:0;color:var(--muted);font-size:13px}
-  .grid{
-    display:grid;grid-template-columns:1fr;gap:14px
-  }
-  @media (min-width:768px){
-    .grid{grid-template-columns:1fr 320px;gap:16px}
-  }
-  .card{
-    background:var(--card);border-radius:10px;padding:12px;border:1px solid rgba(255,255,255,0.02)
-  }
-  .controls{
-    display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px
-  }
-  button.btn{
-    background:linear-gradient(180deg,var(--accent),#0ea5c6);border:0;padding:10px 14px;border-radius:8px;color:#012;cursor:pointer;font-weight:600;font-size:14px;flex:1;min-width:120px
-  }
-  button.ghost{
-    background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);padding:8px 10px;border-radius:8px;font-size:13px
-  }
-  .select,.input{
-    background:var(--glass);border:1px solid rgba(255,255,255,0.03);padding:10px;border-radius:8px;color:inherit;width:100%;font-size:14px
-  }
-  label.small{
-    display:block;color:var(--muted);font-size:12px;margin-bottom:6px
-  }
-  textarea{
-    width:100%;min-height:100px;background:#02101a;border-radius:8px;border:1px solid rgba(255,255,255,0.02);padding:10px;color:#dff1ff;font-family:inherit;resize:vertical;font-size:14px;line-height:1.5
-  }
-  .meta{
-    font-size:13px;color:var(--muted);margin-top:8px
-  }
-  .voices{
-    max-height:140px;overflow:auto;padding:6px;border-radius:8px;border:1px dashed rgba(255,255,255,0.02);background:rgba(255,255,255,0.01);font-size:13px
-  }
-  .row{display:flex;gap:8px;align-items:center}
-  .smallbtn{
-    padding:6px 10px;border-radius:8px;border:0;background:rgba(255,255,255,0.03);color:var(--muted);cursor:pointer;font-size:13px
-  }
-  footer{
-    margin-top:16px;color:var(--muted);font-size:12px;text-align:center
-  }
-  .note{
-    font-size:12px;color:#98a9b5;margin-top:6px;line-height:1.4
-  }
-  .kbd{
-    background:#071826;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,0.02);font-family:monospace;font-size:12px
-  }
-  @media (max-width:768px){
-    .container{padding:12px}
-    h1{font-size:18px}
-    .lead{font-size:12px}
-    button.btn{padding:9px 12px;font-size:13px}
-    textarea{font-size:13px;min-height:90px}
-    .card{padding:10px}
-    .voices{max-height:120px;font-size:12px}
-    .meta{font-size:12px}
-  }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Global Accent Translator - Convert speech to different English accents" />
+  <title>Global Accent Translator</title>
+  <style>
+    :root {
+      --bg: #0f1724;
+      --card: #0b1220;
+      --muted: #9aa7b2;
+      --accent: #38bdf8;
+      --glass: rgba(255,255,255,0.03);
+      --error: #ffb4b4;
+      --success: #b6f0d6;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #071026 0%, #071623 60%), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2306b6d4" stop-opacity="0.07" offset="0"/><stop stop-color="%230c4a6e" stop-opacity="0.02" offset="1"/></linearGradient></defs><rect width="100%" height="100%" fill="url(%23g)"/></svg>');
+      color: #e6eef6;
+      padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .container {
+      width: 980px;
+      max-width: 100%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    h1 {
+      font-size: 20px;
+      margin: 0;
+      font-weight: 600;
+    }
+    p.lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    @media (min-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr 320px;
+        gap: 16px;
+      }
+    }
+    .card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.02);
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    button.btn {
+      background: linear-gradient(180deg, var(--accent), #0ea5c6);
+      border: 0;
+      padding: 10px 14px;
+      border-radius: 8px;
+      color: #012;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      flex: 1;
+      min-width: 120px;
+      transition: transform 0.2s;
+    }
+    button.btn:hover {
+      transform: scale(1.02);
+    }
+    button.btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    button.ghost {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.04);
+      color: var(--muted);
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+    button.ghost:hover:not(:disabled) {
+      background: rgba(255,255,255,0.05);
+    }
+    .select, .input {
+      background: var(--glass);
+      border: 1px solid rgba(255,255,255,0.03);
+      padding: 10px;
+      border-radius: 8px;
+      color: inherit;
+      width: 100%;
+      font-size: 14px;
+    }
+    label.small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      background: #02101a;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.02);
+      padding: 10px;
+      color: #dff1ff;
+      font-family: inherit;
+      resize: vertical;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .meta {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    .voices {
+      max-height: 140px;
+      overflow: auto;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px dashed rgba(255,255,255,0.02);
+      background: rgba(255,255,255,0.01);
+      font-size: 13px;
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .smallbtn {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 0;
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+    .smallbtn:hover:not(:disabled) {
+      background: rgba(255,255,255,0.05);
+    }
+    footer {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+    .note {
+      font-size: 12px;
+      color: #98a9b5;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    .kbd {
+      background: #071826;
+      padding: 4px 6px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.02);
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .history {
+      max-height: 200px;
+      overflow: auto;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px dashed rgba(255,255,255,0.02);
+      background: rgba(255,255,255,0.01);
+      font-size: 13px;
+    }
+    .history-item {
+      padding: 6px;
+      border-bottom: 1px dashed rgba(255,255,255,0.02);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .history-item:hover {
+      background: rgba(255,255,255,0.02);
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow: auto;
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+    .modal-content h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+    .modal-content ul {
+      padding-left: 20px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .loader {
+      display: none;
+      border: 2px solid var(--accent);
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+      margin-left: 8px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .recording .btn {
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    @media (max-width: 768px) {
+      .container { padding: 12px; }
+      h1 { font-size: 18px; }
+      .lead { font-size: 12px; }
+      button.btn { padding: 9px 12px; font-size: 13px; }
+      textarea { font-size: 13px; min-height: 90px; }
+      .card { padding: 10px; }
+      .voices { max-height: 120px; font-size: 12px; }
+      .meta { font-size: 12px; }
+      .modal-content { width: 95%; }
+    }
+  </style>
 </head>
 <body>
   <div class="container" role="application" aria-label="Global Accent Translator">
     <header>
       <div>
         <h1>🌍 Global Accent Translator</h1>
-        <p class="lead">Speak → convert accent → play. Works best on Chrome/Edge → (Created By Samar Jeet Jamwal)</p>
+        <p class="lead">Speak → convert accent → play. Best on Chrome/Edge. <button id="helpBtn" class="smallbtn">ℹ️ Help</button></p>
       </div>
     </header>
 
@@ -92,13 +284,15 @@
       <!-- LEFT: Controls & Transcript -->
       <div class="card">
         <div class="controls">
-          <button id="recBtn" class="btn">🎤 Start Recording</button>
-          <button id="stopBtn" class="ghost" disabled>⏹️ Stop</button>
+          <button id="recBtn" class="btn" aria-label="Start recording">🎤 Start Recording</button>
+          <button id="stopBtn" class="ghost" disabled aria-label="Stop recording">⏹️ Stop</button>
+          <button id="convertBtn" class="btn" aria-label="Convert accent">🔄 Convert</button>
+          <span id="recLoader" class="loader"></span>
         </div>
 
         <div style="margin-bottom:10px">
-          <label class="small">Input Language</label>
-          <select id="inputLang" class="select">
+          <label class="small" for="inputLang">Input Language</label>
+          <select id="inputLang" class="select" aria-label="Select input language">
             <option value="en" selected>English</option>
             <option value="hi">Hindi</option>
             <option value="es">Spanish</option>
@@ -106,22 +300,22 @@
         </div>
 
         <div style="margin-bottom:10px">
-          <label class="small">Mode</label>
-          <select id="mode" class="select">
+          <label class="small" for="mode">Mode</label>
+          <select id="mode" class="select" aria-label="Select conversion mode">
             <option value="local" selected>Local (No API)</option>
             <option value="remote">Remote (LLM via Proxy)</option>
           </select>
         </div>
 
         <div id="proxySettings" style="display:none;margin-bottom:10px">
-          <label class="small">Proxy URL (your server)</label>
-          <input id="proxyUrl" class="input" placeholder="https://your-proxy.example.com/translate-accent" />
+          <label class="small" for="proxyUrl">Proxy URL (your server)</label>
+          <input id="proxyUrl" class="input" placeholder="https://your-proxy.example.com/translate-accent" aria-label="Proxy URL for remote conversion" />
           <div class="note">Your server calls Gemini/LLM securely. Expects {language, text, target_accent}, returns {accent_text, phonetic, speech_tags}.</div>
         </div>
 
         <div style="margin-bottom:10px">
-          <label class="small">Target Accent</label>
-          <select id="accentSelect" class="select">
+          <label class="small" for="accentSelect">Target Accent</label>
+          <select id="accentSelect" class="select" aria-label="Select target accent">
             <option value="british-rp">British (RP)</option>
             <option value="australian">Australian</option>
             <option value="american-general" selected>American (General)</option>
@@ -133,51 +327,79 @@
           </select>
         </div>
 
-        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.02);margin:12px 0">
-
-        <!-- Transcript -->
-        <label class="small">Transcript (auto)</label>
-        <div style="display:flex; gap:6px; align-items:center;">
-          <textarea id="transcript" placeholder="Your speech will appear here..." readonly></textarea>
-          <button id="clearTranscript" class="smallbtn" title="Clear transcript">🗑</button>
+        <div style="margin-bottom:10px">
+          <label class="small">Voice Settings</label>
+          <div class="row">
+            <label class="small" for="rate">Rate:</label>
+            <input id="rate" type="range" min="0.5" max="2" step="0.1" value="0.95" aria-label="Speech playback rate" />
+            <span id="rateValue">0.95</span>
+          </div>
+          <div class="row">
+            <label class="small" for="pitch">Pitch:</label>
+            <input id="pitch" type="range" min="0.5" max="2" step="0.1" value="0.8" aria-label="Speech playback pitch" />
+            <span id="pitchValue">0.8</span>
+          </div>
+          <div class="row">
+            <label class="small" for="volume">Volume:</label>
+            <input id="volume" type="range" min="0" max="1" step="0.1" value="1" aria-label="Speech playback volume" />
+            <span id="volumeValue">1.0</span>
+          </div>
         </div>
 
-        <!-- Accent Text -->
-        <label class="small" style="margin-top:10px">Accent-Converted Text</label>
-        <div style="display:flex; gap:6px; align-items:center;">
-          <textarea id="accentText" placeholder="Result will appear here..." readonly></textarea>
-          <button id="clearAccent" class="smallbtn" title="Clear accent text">🗑</button>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.02);margin:12px 0">
+
+        <label class="small" for="transcript">Transcript (auto)</label>
+        <div class="row">
+          <textarea id="transcript" placeholder="Your speech will appear here..." readonly aria-label="Speech transcript"></textarea>
+          <button id="clearTranscript" class="smallbtn" title="Clear transcript" aria-label="Clear transcript">🗑</button>
+        </div>
+
+        <label class="small" style="margin-top:10px" for="accentText">Accent-Converted Text</label>
+        <div class="row">
+          <textarea id="accentText" placeholder="Result will appear here..." readonly aria-label="Accent-converted text"></textarea>
+          <button id="clearAccent" class="smallbtn" title="Clear accent text" aria-label="Clear accent text">🗑</button>
         </div>
 
         <div class="meta" id="metaInfo">Ready to record</div>
 
         <div style="display:flex;gap:10px;margin-top:10px">
-          <button id="playOriginal" class="ghost">▶ Play Original</button>
-          <button id="playAccent" class="ghost">▶ Not to Click</button>
+          <button id="playOriginal" class="ghost" aria-label="Play original audio">▶ Play the Selected Accent</button>
+          <button id="playAccent" class="ghost" aria-label="Play accented audio">▶ Not to Click Here</button>
+          <span id="playLoader" class="loader"></span>
         </div>
       </div>
 
-      <!-- RIGHT: Voices, Phonetic, Actions -->
+      <!-- RIGHT: Voices, Phonetic, History, Actions -->
       <div>
         <div class="card" style="margin-bottom:10px">
-          <label class="small">Speech Voices (click to select)</label>
-          <div class="voices" id="voicesList">Loading voices…</div>
-          <div style="margin-top:6px"><button id="refreshVoices" class="ghost">🔄 Refresh Voices</button></div>
+          <label class="small" for="voicesList">Speech Voices (click to select)</label>
+          <div class="voices" id="voicesList" role="listbox" aria-label="Available speech voices">Loading voices…</div>
+          <div style="margin-top:6px">
+            <button id="refreshVoices" class="ghost" aria-label="Refresh voice list">🔄 Refresh Voices</button>
+          </div>
           <div class="note">Voices depend on your OS. Chrome desktop has more options.</div>
         </div>
 
         <div class="card" style="margin-bottom:10px">
-          <label class="small">Phonetic & Speech Hints</label>
-          <textarea id="phonetic" placeholder="Phonetic guide will appear here..." readonly></textarea>
+          <label class="small" for="phonetic">Phonetic & Speech Hints</label>
+          <textarea id="phonetic" placeholder="Phonetic guide will appear here..." readonly aria-label="Phonetic transcription and speech hints"></textarea>
           <div style="display:flex;gap:8px;margin-top:8px">
-            <button id="copyAccent" class="ghost">📋 Copy Text</button>
-            <button id="downloadTxt" class="ghost">💾 Download .txt</button>
+            <button id="copyAccent" class="ghost" aria-label="Copy accented text">📋 Copy Text</button>
+            <button id="downloadTxt" class="ghost" aria-label="Download transcript and accented text">💾 Download .txt</button>
           </div>
         </div>
 
         <div class="card">
-          <label class="small">Activity Log</label>
-          <div id="log" style="min-height:120px;padding:8px;color:var(--muted);font-size:13px;background:#031218;border-radius:8px;overflow:auto"></div>
+          <label class="small" for="history">Conversion History</label>
+          <div class="history" id="history" role="listbox" aria-label="Conversion history"></div>
+          <div style="margin-top:6px">
+            <button id="clearHistory" class="ghost" aria-label="Clear conversion history">🗑 Clear History</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <label class="small" for="log">Activity Log</label>
+          <div id="log" style="min-height:120px;padding:8px;color:var(--muted);font-size:13px;background:#031218;border-radius:8px;overflow:auto" aria-live="polite"></div>
         </div>
       </div>
     </div>
@@ -189,48 +411,122 @@
     </footer>
   </div>
 
+  <!-- Help Modal -->
+  <div id="helpModal" class="modal">
+    <div class="modal-content">
+      <h2>Global Accent Translator - Help</h2>
+      <p>Use this app to convert your speech to different English accents.</p>
+      <h3>Instructions</h3>
+      <ul>
+        <li>Click <span class="kbd">🎤 Start Recording</span> to capture speech (best on Chrome/Edge).</li>
+        <li>Select input language and target accent.</li>
+        <li>Choose <span class="kbd">Local</span> for offline conversion or <span class="kbd">Remote</span> with your proxy server.</li>
+        <li>Click <span class="kbd">🔄 Convert</span> or double-click transcript to convert (Ctrl+S for sample).</li>
+        <li>Use voice settings to adjust rate, pitch, and volume.</li>
+        <li>Select a voice from the list and play original or accented audio.</li>
+        <li>View history to restore previous conversions.</li>
+        <li>Keyboard shortcuts: <span class="kbd">Ctrl+S</span> (sample), <span class="kbd">Ctrl+C</span> (copy), <span class="kbd">Ctrl+D</span> (download).</li>
+      </ul>
+      <button id="closeHelp" class="btn" style="width:100%" aria-label="Close help modal">Close</button>
+    </div>
+  </div>
+
   <script>
-    // === LOGGING UTILITY ===
+    // === UTILITIES ===
     const logEl = document.getElementById('log');
     function log(msg, type = 'info') {
       const t = new Date().toLocaleTimeString();
       const el = document.createElement('div');
       el.textContent = `[${t}] ${msg}`;
-      if (type === 'err') el.style.color = '#ffb4b4';
-      else if (type === 'success') el.style.color = '#b6f0d6';
+      el.setAttribute('role', 'log');
+      if (type === 'err') el.style.color = 'var(--error)';
+      else if (type === 'success') el.style.color = 'var(--success)';
       logEl.prepend(el);
+      logEl.scrollTop = 0;
     }
 
     // === ELEMENTS ===
-    const recBtn = document.getElementById('recBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const transcriptEl = document.getElementById('transcript');
-    const accentTextEl = document.getElementById('accentText');
-    const phoneticEl = document.getElementById('phonetic');
-    const metaInfo = document.getElementById('metaInfo');
-    const modeSel = document.getElementById('mode');
-    const proxySettings = document.getElementById('proxySettings');
-    const proxyUrlInput = document.getElementById('proxyUrl');
-    const accentSelect = document.getElementById('accentSelect');
-    const voicesList = document.getElementById('voicesList');
-    const refreshVoicesBtn = document.getElementById('refreshVoices');
-    const copyAccentBtn = document.getElementById('copyAccent');
-    const downloadTxtBtn = document.getElementById('downloadTxt');
-    const playOriginalBtn = document.getElementById('playOriginal');
-    const playAccentBtn = document.getElementById('playAccent');
-    const inputLang = document.getElementById('inputLang');
-    const clearTranscriptBtn = document.getElementById('clearTranscript');
-    const clearAccentBtn = document.getElementById('clearAccent');
+    const elements = {
+      recBtn: document.getElementById('recBtn'),
+      stopBtn: document.getElementById('stopBtn'),
+      convertBtn: document.getElementById('convertBtn'),
+      transcriptEl: document.getElementById('transcript'),
+      accentTextEl: document.getElementById('accentText'),
+      phoneticEl: document.getElementById('phonetic'),
+      metaInfo: document.getElementById('metaInfo'),
+      modeSel: document.getElementById('mode'),
+      proxySettings: document.getElementById('proxySettings'),
+      proxyUrlInput: document.getElementById('proxyUrl'),
+      accentSelect: document.getElementById('accentSelect'),
+      voicesList: document.getElementById('voicesList'),
+      refreshVoicesBtn: document.getElementById('refreshVoices'),
+      copyAccentBtn: document.getElementById('copyAccent'),
+      downloadTxtBtn: document.getElementById('downloadTxt'),
+      playOriginalBtn: document.getElementById('playOriginal'),
+      playAccentBtn: document.getElementById('playAccent'),
+      inputLang: document.getElementById('inputLang'),
+      clearTranscriptBtn: document.getElementById('clearTranscript'),
+      clearAccentBtn: document.getElementById('clearAccent'),
+      rate: document.getElementById('rate'),
+      pitch: document.getElementById('pitch'),
+      volume: document.getElementById('volume'),
+      rateValue: document.getElementById('rateValue'),
+      pitchValue: document.getElementById('pitchValue'),
+      volumeValue: document.getElementById('volumeValue'),
+      history: document.getElementById('history'),
+      clearHistoryBtn: document.getElementById('clearHistory'),
+      helpBtn: document.getElementById('helpBtn'),
+      helpModal: document.getElementById('helpModal'),
+      closeHelp: document.getElementById('closeHelp'),
+      recLoader: document.getElementById('recLoader'),
+      playLoader: document.getElementById('playLoader')
+    };
+
+    // === HISTORY MANAGEMENT ===
+    let history = JSON.parse(localStorage.getItem('accentHistory')) || [];
+    function saveToHistory(original, converted, accent) {
+      history.unshift({ original, converted, accent, timestamp: new Date().toISOString() });
+      if (history.length > 20) history.pop();
+      localStorage.setItem('accentHistory', JSON.stringify(history));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      elements.history.innerHTML = '';
+      history.forEach((item, i) => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.setAttribute('role', 'option');
+        div.setAttribute('aria-selected', 'false');
+        div.innerHTML = `<strong>${item.accent}</strong>: ${item.converted.substring(0, 50)}${item.converted.length > 50 ? '...' : ''} <span style="font-size:11px;color:#889">${new Date(item.timestamp).toLocaleTimeString()}</span>`;
+        div.addEventListener('click', () => {
+          elements.transcriptEl.value = item.original;
+          elements.accentTextEl.value = item.converted;
+          elements.accentSelect.value = item.accent;
+          elements.phoneticEl.value = localAccentTransform(item.original, item.accent).phonetic;
+          log(`✅ Restored history item from ${new Date(item.timestamp).toLocaleTimeString()}`, 'success');
+        });
+        elements.history.appendChild(div);
+      });
+    }
+
+    elements.clearHistoryBtn.addEventListener('click', () => {
+      history = [];
+      localStorage.removeItem('accentHistory');
+      renderHistory();
+      log('🗑 History cleared', 'success');
+    });
 
     // === SPEECH RECOGNITION SETUP ===
     let recognition, recognizing = false;
-    let maxRecordingTimeout;
+    let interimTranscript = '';
+    const CONFIDENCE_THRESHOLD = 0.7;
 
     function setupRecognition() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
         log('❌ Speech-to-Text not supported. Use Chrome/Edge on desktop.', 'err');
-        recBtn.disabled = true;
+        elements.recBtn.disabled = true;
         return;
       }
 
@@ -243,81 +539,104 @@
 
       recognition.onstart = () => {
         recognizing = true;
-        recBtn.textContent = '🎙️ Recording...';
-        stopBtn.disabled = false;
-        metaInfo.textContent = '🎤 Speak now (max 1 min)';
+        elements.recBtn.classList.add('recording');
+        elements.recBtn.textContent = '🎙️ Recording...';
+        elements.stopBtn.disabled = false;
+        elements.recLoader.style.display = 'inline-block';
+        elements.metaInfo.textContent = '🎤 Speak now (max 1 min)';
         log('🎙️ Recording started');
+        interimTranscript = '';
 
-        maxRecordingTimeout = setTimeout(() => {
-          log('⏱️ Max time reached. Stopping...', 'err');
-          recognition.stop();
-        }, 60000); // 1 min max (mobile-friendly)
+        setTimeout(() => {
+          if (recognizing) {
+            log('⏱️ Max time reached. Stopping...', 'err');
+            recognition.stop();
+          }
+        }, 60000);
       };
 
       recognition.onend = () => {
         recognizing = false;
-        clearTimeout(maxRecordingTimeout);
-        recBtn.textContent = '🎤 Start Recording';
-        stopBtn.disabled = true;
+        elements.recBtn.classList.remove('recording');
+        elements.recBtn.textContent = '🎤 Start Recording';
+        elements.stopBtn.disabled = true;
+        elements.recLoader.style.display = 'none';
+        interimTranscript = '';
         log('⏹️ Recording stopped');
       };
 
       recognition.onerror = (ev) => {
         log(`❌ Error: ${ev.error}`, 'err');
-        metaInfo.textContent = `Error: ${ev.error}`;
+        elements.metaInfo.textContent = `Error: ${ev.error}`;
         recognition = null;
-        setupRecognition(); // retry setup
+        setupRecognition();
       };
 
       recognition.onresult = (ev) => {
-        let finalTranscript = '';
+        let final = '';
+        interimTranscript = '';
         for (let i = ev.resultIndex; i < ev.results.length; i++) {
-          if (ev.results[i].isFinal) {
-            finalTranscript += ev.results[i][0].transcript + ' ';
+          const result = ev.results[i];
+          if (result.isFinal && result[0].confidence >= CONFIDENCE_THRESHOLD) {
+            final += result[0].transcript + ' ';
+          } else if (!result.isFinal) {
+            interimTranscript += result[0].transcript + ' ';
           }
         }
-        if (finalTranscript.trim()) {
-          transcriptEl.value += finalTranscript;
-          metaInfo.textContent = `Captured: ${transcriptEl.value.length} chars`;
-        }
+        elements.transcriptEl.value = final.trim() + (interimTranscript ? ' ' + interimTranscript : '');
+        elements.metaInfo.textContent = `Captured: ${elements.transcriptEl.value.length} chars`;
       };
     }
 
     function updateRecognitionLang() {
       if (recognition) {
         const langMap = { en: 'en-US', hi: 'hi-IN', es: 'es-ES' };
-        recognition.lang = langMap[inputLang.value] || 'en-US';
+        recognition.lang = langMap[elements.inputLang.value] || 'en-US';
+      }
+    }
+
+    async function requestMicPermissionAndStart() {
+      if (recognizing) return;
+      elements.recBtn.disabled = true;
+      elements.metaInfo.textContent = 'Requesting microphone access...';
+      try {
+        // Request microphone permission
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: { noiseSuppression: true, echoCancellation: true } });
+        // Stop the stream immediately as we only need permission
+        stream.getTracks().forEach(track => track.stop());
+        // Start speech recognition
+        if (recognition) {
+          recognition.start();
+          elements.recBtn.disabled = false;
+        } else {
+          throw new Error('Speech recognition not initialized');
+        }
+      } catch (e) {
+        log(`❌ Microphone access denied or error: ${e.message}`, 'err');
+        elements.metaInfo.textContent = 'Microphone access denied';
+        elements.recBtn.disabled = false;
       }
     }
 
     setupRecognition();
-    inputLang.addEventListener('change', updateRecognitionLang);
-
-    recBtn.addEventListener('click', () => {
-      if (recognizing) return;
-      try {
-        recognition.start();
-      } catch (e) {
-        log(`❌ Failed to start: ${e.message}`, 'err');
-      }
-    });
-
-    stopBtn.addEventListener('click', () => {
+    elements.inputLang.addEventListener('change', updateRecognitionLang);
+    elements.recBtn.addEventListener('click', requestMicPermissionAndStart);
+    elements.stopBtn.addEventListener('click', () => {
       if (recognition && recognizing) recognition.stop();
     });
 
     // === MODE SWITCH ===
-    modeSel.addEventListener('change', () => {
-      proxySettings.style.display = modeSel.value === 'remote' ? 'block' : 'none';
+    elements.modeSel.addEventListener('change', () => {
+      elements.proxySettings.style.display = elements.modeSel.value === 'remote' ? 'block' : 'none';
     });
 
-    // === VOICE SYNTHESIS & VOICES ===
+    // === VOICE SYNTHESIS ===
     let voices = [];
     function loadVoices() {
       voices = speechSynthesis.getVoices();
-      voicesList.innerHTML = '';
+      elements.voicesList.innerHTML = '';
       if (voices.length === 0) {
-        voicesList.textContent = '🔇 No voices available. Try Chrome on Android/iOS.';
+        elements.voicesList.textContent = '🔇 No voices available. Try Chrome on Android/iOS.';
         return;
       }
       voices.forEach((v, i) => {
@@ -325,27 +644,31 @@
         div.style.padding = '6px';
         div.style.borderBottom = '1px dashed rgba(255,255,255,0.02)';
         div.style.cursor = 'pointer';
+        div.setAttribute('role', 'option');
+        div.setAttribute('aria-selected', 'false');
         div.innerHTML = `<strong>${v.name}</strong> <span style="font-size:11px;color:#889">${v.lang}${v.localService?' 🌐':''}${v.default?' ⭐':''}</span>`;
         div.dataset.index = i;
         div.addEventListener('click', () => {
-          Array.from(voicesList.children).forEach(el => el.style.background = 'transparent');
+          Array.from(elements.voicesList.children).forEach(el => {
+            el.style.background = 'transparent';
+            el.setAttribute('aria-selected', 'false');
+          });
           div.style.background = 'rgba(255,255,255,0.02)';
-          voicesList.dataset.selected = i;
+          div.setAttribute('aria-selected', 'true');
+          elements.voicesList.dataset.selected = i;
           log(`✅ Voice selected: ${v.name}`);
         });
-        voicesList.appendChild(div);
+        elements.voicesList.appendChild(div);
       });
     }
 
-    // Load voices
     if ('onvoiceschanged' in speechSynthesis) {
       speechSynthesis.onvoiceschanged = loadVoices;
     } else {
-      log('⚠️ Voice selection may not work on this device.', 'err');
       setTimeout(loadVoices, 500);
     }
 
-    refreshVoicesBtn.addEventListener('click', () => {
+    elements.refreshVoicesBtn.addEventListener('click', () => {
       speechSynthesis.cancel();
       speechSynthesis.onvoiceschanged = null;
       setTimeout(() => {
@@ -354,11 +677,26 @@
       }, 100);
     });
 
+    // === VOICE SETTINGS ===
+    elements.rate.addEventListener('input', () => {
+      elements.rateValue.textContent = elements.rate.value;
+    });
+    elements.pitch.addEventListener('input', () => {
+      elements.pitchValue.textContent = elements.pitch.value;
+    });
+    elements.volume.addEventListener('input', () => {
+      elements.volumeValue.textContent = elements.volume.value;
+    });
+
     // === PLAY TEXT FUNCTION ===
     function playText(text, purpose) {
-      if (!text.trim()) return log(`Nothing to play (${purpose})`, 'err');
+      if (!text.trim()) {
+        log(`Nothing to play (${purpose})`, 'err');
+        return;
+      }
+      elements.playLoader.style.display = 'inline-block';
       const utter = new SpeechSynthesisUtterance(text);
-      const selectedIndex = voicesList.dataset.selected;
+      const selectedIndex = elements.voicesList.dataset.selected;
       if (selectedIndex !== undefined && voices[selectedIndex]) {
         utter.voice = voices[selectedIndex];
       } else {
@@ -367,55 +705,67 @@
           'indian-english': 'en-IN', 'nigerian-english': 'en-NG', 'scottish': 'en-GB',
           'southern-us': 'en-US', 'irish': 'en-IE'
         };
-        const lang = accentLangMap[accentSelect.value];
-        const matchedVoice = voices.find(v => v.lang.startsWith(lang));
+        const lang = accentLangMap[elements.accentSelect.value];
+        const matchedVoice = voices.find(v => v.lang.startsWith(lang)) || voices.find(v => v.lang.startsWith('en'));
         if (matchedVoice) utter.voice = matchedVoice;
       }
-      utter.rate = 0.95; utter.pitch = 0.8;
-      utter.onstart = () => log(`▶ Playing ${purpose}...`);
-      utter.onerror = () => log(`❌ Failed to play ${purpose}`, 'err');
+      utter.rate = parseFloat(elements.rate.value);
+      utter.pitch = parseFloat(elements.pitch.value);
+      utter.volume = parseFloat(elements.volume.value);
+      utter.onstart = () => {
+        log(`▶ Playing ${purpose}...`);
+        elements.playLoader.style.display = 'none';
+      };
+      utter.onend = () => {
+        elements.playLoader.style.display = 'none';
+      };
+      utter.onerror = () => {
+        log(`❌ Failed to play ${purpose}`, 'err');
+        elements.playLoader.style.display = 'none';
+      };
       speechSynthesis.cancel();
       speechSynthesis.speak(utter);
     }
 
-    playOriginalBtn.addEventListener('click', () => playText(transcriptEl.value, 'original'));
-    playAccentBtn.addEventListener('click', () => playText(accentTextEl.value, 'accented'));
+    elements.playOriginalBtn.addEventListener('click', () => playText(elements.transcriptEl.value, 'original'));
+    elements.playAccentBtn.addEventListener('click', () => playText(elements.accentTextEl.value, 'accented'));
 
     // === COPY & DOWNLOAD ===
-    copyAccentBtn.addEventListener('click', () => {
-      const text = accentTextEl.value;
+    elements.copyAccentBtn.addEventListener('click', () => {
+      const text = elements.accentTextEl.value || elements.transcriptEl.value;
       if (!text) return log('Nothing to copy', 'err');
       navigator.clipboard.writeText(text)
-        .then(() => log('📋 Copied'), e => log('❌ Copy failed: ' + e, 'err'));
+        .then(() => log('📋 Copied to clipboard', 'success'))
+        .catch(e => log(`❌ Copy failed: ${e.message}`, 'err'));
     });
 
-    downloadTxtBtn.addEventListener('click', () => {
-      const text = accentTextEl.value || transcriptEl.value || '';
-      if (!text) return log('Nothing to download', 'err');
+    elements.downloadTxtBtn.addEventListener('click', () => {
+      const text = `Original: ${elements.transcriptEl.value}\n\nAccented: ${elements.accentTextEl.value}\n\nPhonetic: ${elements.phoneticEl.value}`;
+      if (!text.trim()) return log('Nothing to download', 'err');
       const blob = new Blob([text], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'accent-text.txt';
+      a.download = `accent-transcript-${new Date().toISOString().split('T')[0]}.txt`;
       a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      log('💾 Saved as accent-text.txt');
+      log('💾 Saved as transcript file', 'success');
     });
 
     // === CLEAR BUTTONS ===
-    clearTranscriptBtn.addEventListener('click', () => {
-      transcriptEl.value = '';
-      metaInfo.textContent = 'Transcript cleared';
+    elements.clearTranscriptBtn.addEventListener('click', () => {
+      elements.transcriptEl.value = '';
+      elements.metaInfo.textContent = 'Transcript cleared';
       log('🗑 Transcript cleared', 'success');
     });
 
-    clearAccentBtn.addEventListener('click', () => {
-      accentTextEl.value = '';
-      phoneticEl.value = '';
-      metaInfo.textContent = 'Accent text cleared';
+    elements.clearAccentBtn.addEventListener('click', () => {
+      elements.accentTextEl.value = '';
+      elements.phoneticEl.value = '';
+      elements.metaInfo.textContent = 'Accent text cleared';
       log('🗑 Accent text cleared', 'success');
     });
 
@@ -423,13 +773,38 @@
     function localAccentTransform(text, accent) {
       if (!text.trim()) return { accent_text: '', phonetic: '', speech_tags: '' };
       const substitutions = {
-        'british-rp': [['store', 'shop'], ['elevator', 'lift'], ['apartment', 'flat'], ['color', 'colour']],
-        'australian': [['hello', 'g’day'], ['apartment', 'unit'], ['truck', 'ute']],
-        'indian-english': [['elevator', 'lift'], ['bathroom', 'washroom'], ['truck', 'lorry']],
-        'southern-us': [['you all', 'y’all'], ['hello', 'howdy'], ['car', 'automobile']],
-        'nigerian-english': [['flat', 'apartment'], ['lorry', 'truck'], ['madam', 'ma']],
-        'scottish': [['water', 'waater'], ['house', 'hoose'], ['yes', 'aye']],
-        'irish': [['child', 'wee one'], ['friend', 'lad'], ['pub', 'local']]
+        'british-rp': [
+          ['store', 'shop'], ['elevator', 'lift'], ['apartment', 'flat'], ['color', 'colour'],
+          ['organize', 'organise'], ['truck', 'lorry'], ['cookie', 'biscuit'], ['cell phone', 'mobile']
+        ],
+        'australian': [
+          ['hello', 'g’day'], ['apartment', 'unit'], ['truck', 'ute'], ['friend', 'mate'],
+          ['barbecue', 'barbie'], ['gasoline', 'petrol'], ['candy', 'lolly']
+        ],
+        'american-general': [
+          ['shop', 'store'], ['lift', 'elevator'], ['flat', 'apartment'], ['colour', 'color'],
+          ['organise', 'organize'], ['lorry', 'truck'], ['biscuit', 'cookie']
+        ],
+        'indian-english': [
+          ['elevator', 'lift'], ['bathroom', 'washroom'], ['truck', 'lorry'], ['schedule', 'shed-yool'],
+          ['friend', 'yaar'], ['please', 'kindly'], ['now', 'abhi']
+        ],
+        'nigerian-english': [
+          ['flat', 'apartment'], ['lorry', 'truck'], ['madam', 'ma'], ['friend', 'padi'],
+          ['please', 'abeg'], ['now', 'now-now'], ['food', 'chop']
+        ],
+        'scottish': [
+          ['water', 'waater'], ['house', 'hoose'], ['yes', 'aye'], ['child', 'bairn'],
+          ['small', 'wee'], ['friend', 'pal'], ['no', 'naw']
+        ],
+        'southern-us': [
+          ['you all', 'y’all'], ['hello', 'howdy'], ['car', 'automobile'], ['friend', 'buddy'],
+          ['over there', 'yonder'], ['fixing to', 'finna'], ['good', 'right']
+        ],
+        'irish': [
+          ['child', 'wee one'], ['friend', 'lad'], ['pub', 'local'], ['good', 'grand'],
+          ['yes', 'aye'], ['now', 'this minute'], ['fun', 'craic']
+        ]
       };
       let result = text;
       (substitutions[accent] || []).forEach(([from, to]) => {
@@ -440,73 +815,100 @@
           return to;
         });
       });
-      const phonetic = {
+      const phonetics = {
         'british-rp': '/aɪm ˈɡəʊɪŋ tə ðə ʃɒp/',
         'australian': '/aɪm ˈɡəʉɪŋ tə ðə ʃɒp/',
         'american-general': '/aɪm ˈɡoʊɪŋ tə ðə stɔr/',
-        'indian-english': '/aɪm ˈɡoʊɪŋ tə ðə ˈlɪft/'
-      }[accent] || '';
+        'indian-english': '/aɪm ˈɡoʊɪŋ tə ðə ˈlɪft/',
+        'nigerian-english': '/aɪm ˈɡoʊɪŋ tə ðə ˈtrʌk/',
+        'scottish': '/aɪm ˈɡəʉɪŋ tə ðə ˈhoʊs/',
+        'southern-us': '/aɪm ˈɡoʊɪŋ tə ðə ˈstɔr/',
+        'irish': '/aɪm ˈɡoʊɪŋ tə ðə ˈlɒkəl/'
+      };
       return {
         accent_text: result,
-        phonetic: phonetic,
+        phonetic: phonetics[accent] || '',
         speech_tags: `[Accent: ${accent}]`
       };
     }
 
     async function convertText() {
-      const text = transcriptEl.value.trim();
+      const text = elements.transcriptEl.value.trim();
       if (!text) return log('Nothing to convert', 'err');
-      accentTextEl.value = '';
-      phoneticEl.value = '';
-      metaInfo.textContent = '🔄 Converting...';
+      elements.convertBtn.disabled = true;
+      elements.convertBtn.innerHTML = '🔄 Converting... <span class="loader" style="display:inline-block"></span>';
+      elements.metaInfo.textContent = '🔄 Converting...';
 
       try {
         let result;
-        if (modeSel.value === 'local') {
-          result = localAccentTransform(text, accentSelect.value);
-          log('✅ Local transform applied');
+        if (elements.modeSel.value === 'local') {
+          result = localAccentTransform(text, elements.accentSelect.value);
+          log('✅ Local transform applied', 'success');
         } else {
-          const url = proxyUrlInput.value.trim();
+          const url = elements.proxyUrlInput.value.trim();
           if (!url) throw new Error('Proxy URL required');
           const res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              language: inputLang.value,
+              language: elements.inputLang.value,
               text: text,
-              target_accent: accentSelect.value
+              target_accent: elements.accentSelect.value
             })
           });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
           result = await res.json();
           if (!result.accent_text) throw new Error('Invalid response format');
-          log('✅ Remote transform applied');
+          log('✅ Remote transform applied', 'success');
         }
-        accentTextEl.value = result.accent_text;
-        phoneticEl.value = [result.phonetic, result.speech_tags].filter(Boolean).join('\n');
-        metaInfo.textContent = '🎯 Conversion complete';
+        elements.accentTextEl.value = result.accent_text;
+        elements.phoneticEl.value = [result.phonetic, result.speech_tags].filter(Boolean).join('\n');
+        elements.metaInfo.textContent = '🎯 Conversion complete';
+        saveToHistory(text, result.accent_text, elements.accentSelect.value);
       } catch (err) {
         log(`❌ Failed: ${err.message}`, 'err');
-        metaInfo.textContent = '⚠️ Using fallback...';
-        const fallback = localAccentTransform(text, accentSelect.value);
-        accentTextEl.value = fallback.accent_text;
-        phoneticEl.value = fallback.phonetic + '\n' + fallback.speech_tags;
-        log('🔁 Fallback applied');
+        elements.metaInfo.textContent = '⚠️ Using fallback...';
+        const fallback = localAccentTransform(text, elements.accentSelect.value);
+        elements.accentTextEl.value = fallback.accent_text;
+        elements.phoneticEl.value = [fallback.phonetic, fallback.speech_tags].filter(Boolean).join('\n');
+        log('🔁 Fallback applied', 'success');
+        saveToHistory(text, fallback.accent_text, elements.accentSelect.value);
+      } finally {
+        elements.convertBtn.disabled = false;
+        elements.convertBtn.innerHTML = '🔄 Convert';
       }
     }
 
-    // === TRIGGER CONVERSION ===
-    transcriptEl.addEventListener('dblclick', convertText);
+    // === EVENT LISTENERS ===
+    elements.convertBtn.addEventListener('click', convertText);
+    elements.transcriptEl.addEventListener('dblclick', convertText);
+
     document.addEventListener('keydown', e => {
       if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
-        transcriptEl.value = "I'm going to the store to buy some cookies.";
+        elements.transcriptEl.value = "I'm going to the store to buy some cookies.";
         convertText();
+      } else if (e.key === 'c' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        elements.copyAccentBtn.click();
+      } else if (e.key === 'd' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        elements.downloadTxtBtn.click();
       }
     });
 
+    // === HELP MODAL ===
+    elements.helpBtn.addEventListener('click', () => {
+      elements.helpModal.style.display = 'flex';
+    });
+
+    elements.closeHelp.addEventListener('click', () => {
+      elements.helpModal.style.display = 'none';
+    });
+
     // === INIT ===
-    log('✅ Ready. Tap 🎤 to start. Best on Chrome/Edge (desktop or Android).');
+    renderHistory();
+    log('✅ Ready. Tap 🎤 to start. Best on Chrome/Edge (desktop or Android).', 'success');
   </script>
 </body>
 </html>
